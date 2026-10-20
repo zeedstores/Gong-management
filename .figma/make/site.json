@@ -1,0 +1,10 @@
+{
+  "description": "A dynamic platform for managing Ghanaian events, artist bookings, equipment hire, property listings, and online shop with admin dashboard control.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
