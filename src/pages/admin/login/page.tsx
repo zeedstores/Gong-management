@@ -1,16 +1,42 @@
+
 import { useState, type FormEvent } from "react"
 import { LockKeyhole } from "lucide-react"
 import { useNavigate } from "react-router"
 import { Button, Field } from "../../../components/ui"
+import { supabase } from "../../../lib/supabase"
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const submit = (event: FormEvent) => {
+  const [loading, setLoading] = useState(false)
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError("")
-    navigate("/admin")
+    setLoading(true)
+
+    try {
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+
+      if (loginError) throw loginError
+
+      navigate("/admin", { replace: true })
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to sign in. Please try again.",
+      )
+    } finally {
+      setLoading(false)
+    }
   }
+
   return (
     <main className="admin-login">
       <div className="login-visual">
@@ -27,29 +53,37 @@ export default function AdminLoginPage() {
           </p>
         </div>
       </div>
+
       <div className="login-panel">
         <img src="/assets/gong-logo.png" alt="Gong Management" />
         <LockKeyhole size={24} />
         <h2>Admin access</h2>
-        <p>
-          Prototype login only. Connect secure authentication before production
-          use.
-        </p>
+        <p>Sign in with your authorized administrator account.</p>
+
         <form onSubmit={submit}>
           <Field
             label="Email"
             type="email"
             required
             placeholder="admin@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
           />
+
           <Field
             label="Password"
             type="password"
             required
-            placeholder="••••••••"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
           />
-          {error && <p>{error}</p>}
-          <Button type="submit">Enter demo dashboard</Button>
+
+          {error && <p role="alert">{error}</p>}
+
+          <Button type="submit" disabled={loading}>
+            {loading ? "Signing in..." : "Sign in"}
+          </Button>
         </form>
       </div>
     </main>

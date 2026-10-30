@@ -1,6 +1,11 @@
+
 import { MapPin, MessageCircle, Phone } from "lucide-react"
 import { InquiryForm } from "../../components/InquiryForm"
-import { Eyebrow, Heading, PageHero } from "../../components/ui"
+import {
+  Eyebrow,
+  Heading,
+  PageHero,
+} from "../../components/ui"
 
 export default function ContactPage() {
   return (
@@ -8,42 +13,66 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact"
         title="LET'S TALK SOUND, STAGE & POSSIBILITY."
-        copy="We are based in Tema, Ghana. Exact address and direct contact details will be published once confirmed."
+        copy="Have an event, artist booking or production idea? Get in touch with Gong Management and let's discuss what's possible."
       />
+
       <section className="section light-section">
         <div className="shell contact-grid">
           <div>
             <Eyebrow dark>Find Gong</Eyebrow>
+
             <Heading>
               TEMA IS
               <br />
               HOME BASE.
             </Heading>
+
+            <p>
+              Reach out to discuss your next event, production
+              project or collaboration.
+            </p>
+
             <div className="contact-list">
               <p>
                 <MapPin />
-                Tema, Greater Accra, Ghana
-                <br />
-                <span>Exact location pending confirmation</span>
+                <span>
+                  <strong>Location</strong>
+                  <br />
+                  Tema, Greater Accra, Ghana
+                  <br />
+                  <span>Exact address to be confirmed.</span>
+                </span>
               </p>
+
               <p>
                 <Phone />
-                Phone number pending
+                <span>
+                  <strong>Phone</strong>
+                  <br />
+                  Contact details coming soon.
+                </span>
               </p>
+
               <p>
                 <MessageCircle />
-                WhatsApp number pending
+                <span>
+                  <strong>WhatsApp</strong>
+                  <br />
+                  WhatsApp contact coming soon.
+                </span>
               </p>
             </div>
+
             <div className="map-placeholder">
               <MapPin size={32} />
-              <strong>Map location pending</strong>
+              <strong>Gong Management — Tema</strong>
               <span>
-                An accurate pin will appear after the client confirms the
-                address.
+                Our map location will be published once the
+                official business address is confirmed.
               </span>
             </div>
           </div>
+
           <InquiryForm type="General enquiry" />
         </div>
       </section>

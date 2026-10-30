@@ -155,6 +155,7 @@ export const navItems = [
   ["About Us", "/about"],
   ["Services", "/services"],
   ["Flagship Events", "/events"],
+  ["Foundation", "/foundation"],
   ["Portfolio", "/portfolio"],
   ["Shop", "/shop"],
   ["Equipment Hire", "/equipment"],
