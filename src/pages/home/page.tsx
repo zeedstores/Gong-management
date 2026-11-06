@@ -139,45 +139,45 @@ export default function HomePage() {
           .select("id, title, description, image_url, slug")
           .eq("is_published", true)
           .order("display_order")
-          .limit(4),
+          .limit(8),
 
         supabase
           .from("events")
           .select("id, title, slug, description, status, cover_image, is_free")
           .eq("status", "published")
           .order("start_date", { ascending: true, nullsFirst: false })
-          .limit(3),
+          .limit(8),
 
         supabase
           .from("products")
           .select("id, name, price, availability, image_url")
           .neq("availability", "Draft")
-          .limit(3),
+          .limit(8),
 
         supabase
           .from("equipment")
           .select("id, name, category, description")
           .eq("is_published", true)
-          .limit(3),
+          .limit(8),
 
         supabase
           .from("properties")
           .select("id, title, type, location, description, price")
           .eq("is_published", true)
-          .limit(2),
+          .limit(8),
 
         supabase
           .from("portfolio")
           .select("id, title, category, image_url")
           .eq("is_published", true)
           .order("display_order")
-          .limit(3),
+          .limit(4),
 
         supabase
           .from("foundation_campaigns")
           .select("id, title, slug, description, cover_image, goal_amount, currency")
           .eq("status", "active")
-          .limit(2),
+          .limit(5),
 
         supabase
           .from("team_members")
@@ -191,7 +191,7 @@ export default function HomePage() {
           .select("id, title, slug, excerpt, cover_image, author, published_at, category")
           .eq("status", "published")
           .order("published_at", { ascending: false, nullsFirst: false })
-          .limit(3),
+          .limit(8),
       ])
 
       const results = [

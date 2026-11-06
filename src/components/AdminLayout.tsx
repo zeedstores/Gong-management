@@ -13,6 +13,7 @@ import {
   CalendarPlus,
   HandCoins,
   Users,
+  BriefcaseBusiness,
 } from "lucide-react"
 
 const links = [
@@ -22,31 +23,16 @@ const links = [
   { label: "Ticket orders", path: "/admin/orders", Icon: Ticket },
   { label: "Equipment", path: "/admin/equipment", Icon: Wrench },
   { label: "Team", path: "/admin/team", Icon: Users },
+  { label: "Portfolio", path: "/admin/portfolio", Icon: BriefcaseBusiness },
   { label: "Enquiries", path: "/admin/enquiries", Icon: MessageSquare },
   { label: "Settings", path: "/admin/settings", Icon: Settings },
 ] as const
 
 const foundationLinks = [
-  {
-    label: "Foundation news",
-    path: "/admin/foundation-news",
-    Icon: Newspaper,
-  },
-  {
-    label: "Foundation events",
-    path: "/admin/foundation-events",
-    Icon: CalendarPlus,
-  },
-  {
-    label: "Campaigns",
-    path: "/admin/foundation-campaigns",
-    Icon: HeartHandshake,
-  },
-  {
-    label: "Donations",
-    path: "/admin/foundation-donations",
-    Icon: HandCoins,
-  },
+  { label: "Foundation news", path: "/admin/foundation-news", Icon: Newspaper },
+  { label: "Foundation events", path: "/admin/foundation-events", Icon: CalendarPlus },
+  { label: "Campaigns", path: "/admin/foundation-campaigns", Icon: HeartHandshake },
+  { label: "Donations", path: "/admin/foundation-donations", Icon: HandCoins },
 ] as const
 
 export default function AdminLayout() {
@@ -60,11 +46,7 @@ export default function AdminLayout() {
 
         <nav>
           {links.map(({ label, path, Icon }) => (
-            <NavLink
-              end={path === "/admin"}
-              key={path}
-              to={path}
-            >
+            <NavLink end={path === "/admin"} key={path} to={path}>
               <Icon size={18} />
               {label}
             </NavLink>
@@ -95,7 +77,6 @@ export default function AdminLayout() {
             <p>Gong Management</p>
             <strong>Content workspace</strong>
           </div>
-
           <NavLink to="/">View website</NavLink>
         </header>
 

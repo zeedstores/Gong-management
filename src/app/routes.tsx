@@ -37,6 +37,7 @@ import AdminFoundationNewsPage from "../pages/admin/foundation-news/page"
 import AdminFoundationEventsPage from "../pages/admin/foundation-events/page"
 import AdminFoundationCampaignsPage from "../pages/admin/foundation-campaigns/page"
 import AdminFoundationDonationsPage from "../pages/admin/foundation-donations/page"
+import AdminPortfolioPage from "../pages/admin/portfolio/page"
 
 import NotFoundPage from "../pages/not-found/page"
 
@@ -128,6 +129,7 @@ export const router = createBrowserRouter([
           { path: "team", Component: AdminTeamPage },
           { path: "enquiries", Component: AdminEnquiriesPage },
           { path: "settings", Component: AdminSettingsPage },
+          { path: "portfolio", Component: AdminPortfolioPage },
 
           { path: "foundation-news", Component: AdminFoundationNewsPage },
           { path: "foundation-events", Component: AdminFoundationEventsPage },
