@@ -1,8 +1,9 @@
 
 import { useEffect, useMemo, useState } from "react"
-import { MapPin } from "lucide-react"
+import { MapPin, MessageCircle } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { ButtonLink, Eyebrow, PageHero } from "../../components/ui"
+import PaymentModal from "../../components/PaymentModal"
 
 type Property = {
   id: string
@@ -20,14 +21,28 @@ export default function PropertiesPage() {
   const [type, setType] = useState("All")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [whatsapp, setWhatsapp] = useState("")
 
   useEffect(() => {
+    let active = true
+
     const fetchProperties = async () => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("id, title, type, location, description, image_url, price, status")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
+      const [{ data, error }, settingsResult] = await Promise.all([
+        supabase
+          .from("properties")
+          .select("id, title, type, location, description, image_url, price, status")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false }),
+
+        supabase
+          .from("site_settings")
+          .select("whatsapp_number")
+          .eq("id", true)
+          .single(),
+      ])
+
+      if (!active) return
 
       if (error) {
         setError("Unable to load property listings. Please try again.")
@@ -35,10 +50,15 @@ export default function PropertiesPage() {
         setProperties(data ?? [])
       }
 
+      setWhatsapp(settingsResult.data?.whatsapp_number ?? "")
       setLoading(false)
     }
 
     fetchProperties()
+
+    return () => {
+      active = false
+    }
   }, [])
 
   const filtered = useMemo(
@@ -52,15 +72,21 @@ export default function PropertiesPage() {
   const formatPrice = (price: number | null) => {
     if (price === null) return "Price on enquiry"
 
-    return `GHS ${Number(price).toLocaleString("en-GH")}`
+    return `GH₵${Number(price).toLocaleString("en-GH")}`
   }
+
+  const whatsappLink = whatsapp
+    ? `https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
+        "Hello Gong Management, I would like to make a general property enquiry.",
+      )}`
+    : ""
 
   return (
     <>
       <PageHero
         eyebrow="Property desk"
         title="SPACE FOR WHAT COMES NEXT."
-        copy="Browse available land and house opportunities. Listings are enquiry-only, and no property payment is taken online."
+        copy="Explore selected residential properties in Greater Accra. Contact our team to confirm availability, documentation and purchase details."
       />
 
       <section className="section light-section">
@@ -152,16 +178,13 @@ export default function PropertiesPage() {
 
                   <strong>{formatPrice(item.price)}</strong>
 
-                  <a
+                  <button
+                    type="button"
                     className="button"
-                    href={`https://wa.me/?text=${encodeURIComponent(
-                      `Hello Gong Management, I would like to enquire about ${item.title} (${item.id}).`,
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    onClick={() => setSelectedProperty(item)}
                   >
-                    Enquire on WhatsApp
-                  </a>
+                    Buy
+                  </button>
                 </div>
               </article>
             ))
@@ -170,12 +193,33 @@ export default function PropertiesPage() {
 
         <div className="shell catalogue-note">
           <p>
-            Property details and availability should be verified with our team
-            before any transaction.
+            Property details, ownership documents and availability should be
+            verified with our team before any transaction.
           </p>
           <ButtonLink to="/contact">General property enquiry</ButtonLink>
         </div>
       </section>
+
+      {whatsappLink && (
+        <a
+          href={whatsappLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Enquire about properties on WhatsApp"
+          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105"
+        >
+          <MessageCircle size={27} />
+        </a>
+      )}
+
+      {selectedProperty && (
+        <PaymentModal
+          onClose={() => setSelectedProperty(null)}
+          purpose="property"
+          amount={selectedProperty.price ?? undefined}
+          propertyTitle={selectedProperty.title}
+        />
+      )}
     </>
   )
 }

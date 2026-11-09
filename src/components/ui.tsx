@@ -113,16 +113,19 @@ export function Status({ children }: { children: ReactNode }) {
   )
 }
 
+
 export function PageHero({
   eyebrow,
   title,
   copy,
   image,
+  imageFit = "cover",
 }: {
   eyebrow: string
   title: string
   copy: string
   image?: string
+  imageFit?: "cover" | "contain"
 }) {
   return (
     <section
@@ -131,6 +134,11 @@ export function PageHero({
         image
           ? {
               backgroundImage: `linear-gradient(90deg,rgba(8,8,8,.95),rgba(8,8,8,.2)),url(${image})`,
+              backgroundSize:
+                imageFit === "contain" ? "cover, contain" : "cover",
+              backgroundPosition:
+                imageFit === "contain" ? "center, right center" : "center",
+              backgroundRepeat: "no-repeat",
             }
           : undefined
       }

@@ -8,6 +8,8 @@ import {
   CreditCard,
   RefreshCw,
   ShieldCheck,
+  Globe,
+  Banknote,
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { Button, Field, TextArea } from "../../../components/ui"
@@ -23,7 +25,11 @@ type SiteSettings = {
 type PaymentSettings = {
   account_name: string
   bank_name: string
-  account_number: string
+  account_ghs: string
+  account_usd: string
+  account_gbp: string
+  account_eur: string
+  paystack_url: string
   payment_instructions: string
 }
 
@@ -36,9 +42,13 @@ const defaultSiteSettings: SiteSettings = {
 }
 
 const defaultPaymentSettings: PaymentSettings = {
-  account_name: "",
-  bank_name: "",
-  account_number: "",
+  account_name: "Gong Managements",
+  bank_name: "Guaranty Trust Bank (Ghana) Ltd (GT Bank)",
+  account_ghs: "3219001001915",
+  account_usd: "3219002004060",
+  account_gbp: "",
+  account_eur: "",
+  paystack_url: "https://paystack.shop/pay/z44irmmv-s",
   payment_instructions: "",
 }
 
@@ -87,23 +97,39 @@ export default function AdminSettingsPage() {
       if (paymentResult.error) throw paymentResult.error
 
       setSiteSettings({
-        business_name: siteResult.data.business_name || "",
+        business_name:
+          siteResult.data.business_name || "",
         email: siteResult.data.email || "",
-        whatsapp_number: siteResult.data.whatsapp_number || "",
+        whatsapp_number:
+          siteResult.data.whatsapp_number || "",
         location: siteResult.data.location || "",
-        instagram_url: siteResult.data.instagram_url || "",
+        instagram_url:
+          siteResult.data.instagram_url || "",
       })
 
       setPaymentSettings({
-        account_name: paymentResult.data.account_name || "",
-        bank_name: paymentResult.data.bank_name || "",
-        account_number: paymentResult.data.account_number || "",
+        account_name:
+          paymentResult.data.account_name || "",
+        bank_name:
+          paymentResult.data.bank_name || "",
+        account_ghs:
+          paymentResult.data.account_ghs || "",
+        account_usd:
+          paymentResult.data.account_usd || "",
+        account_gbp:
+          paymentResult.data.account_gbp || "",
+        account_eur:
+          paymentResult.data.account_eur || "",
+        paystack_url:
+          paymentResult.data.paystack_url || "",
         payment_instructions:
           paymentResult.data.payment_instructions || "",
       })
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to load settings.",
+        err instanceof Error
+          ? err.message
+          : "Unable to load settings.",
       )
     } finally {
       setLoading(false)
@@ -114,7 +140,10 @@ export default function AdminSettingsPage() {
     loadSettings()
   }, [])
 
-  const updateSite = (key: keyof SiteSettings, value: string) => {
+  const updateSite = (
+    key: keyof SiteSettings,
+    value: string,
+  ) => {
     setSiteSettings((current) => ({
       ...current,
       [key]: value,
@@ -122,7 +151,10 @@ export default function AdminSettingsPage() {
     setSaved(false)
   }
 
-  const updatePayment = (key: keyof PaymentSettings, value: string) => {
+  const updatePayment = (
+    key: keyof PaymentSettings,
+    value: string,
+  ) => {
     setPaymentSettings((current) => ({
       ...current,
       [key]: value,
@@ -130,7 +162,9 @@ export default function AdminSettingsPage() {
     setSaved(false)
   }
 
-  const saveSettings = async (event: FormEvent<HTMLFormElement>) => {
+  const saveSettings = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault()
 
     setSaving(true)
@@ -144,18 +178,25 @@ export default function AdminSettingsPage() {
       if (sessionError) throw sessionError
 
       if (!sessionData.session) {
-        throw new Error("Your session has expired. Please log in again.")
+        throw new Error(
+          "Your session has expired. Please log in again.",
+        )
       }
 
       const [siteResult, paymentResult] = await Promise.all([
         supabase
           .from("site_settings")
           .update({
-            business_name: siteSettings.business_name.trim(),
-            email: siteSettings.email.trim() || null,
-            whatsapp_number: siteSettings.whatsapp_number.trim() || null,
-            location: siteSettings.location.trim() || null,
-            instagram_url: siteSettings.instagram_url.trim() || null,
+            business_name:
+              siteSettings.business_name.trim(),
+            email:
+              siteSettings.email.trim() || null,
+            whatsapp_number:
+              siteSettings.whatsapp_number.trim() || null,
+            location:
+              siteSettings.location.trim() || null,
+            instagram_url:
+              siteSettings.instagram_url.trim() || null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", true),
@@ -163,9 +204,20 @@ export default function AdminSettingsPage() {
         supabase
           .from("payment_settings")
           .update({
-            account_name: paymentSettings.account_name.trim() || null,
-            bank_name: paymentSettings.bank_name.trim() || null,
-            account_number: paymentSettings.account_number.trim() || null,
+            account_name:
+              paymentSettings.account_name.trim() || null,
+            bank_name:
+              paymentSettings.bank_name.trim() || null,
+            account_ghs:
+              paymentSettings.account_ghs.trim() || null,
+            account_usd:
+              paymentSettings.account_usd.trim() || null,
+            account_gbp:
+              paymentSettings.account_gbp.trim() || null,
+            account_eur:
+              paymentSettings.account_eur.trim() || null,
+            paystack_url:
+              paymentSettings.paystack_url.trim() || null,
             payment_instructions:
               paymentSettings.payment_instructions.trim() || null,
             updated_at: new Date().toISOString(),
@@ -179,7 +231,9 @@ export default function AdminSettingsPage() {
       setSaved(true)
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to save settings.",
+        err instanceof Error
+          ? err.message
+          : "Unable to save settings.",
       )
     } finally {
       setSaving(false)
@@ -190,7 +244,10 @@ export default function AdminSettingsPage() {
     return (
       <main className="admin-page !bg-[#090909] !text-[#f3f0e8]">
         <div className="flex min-h-[400px] items-center justify-center gap-3">
-          <Loader2 size={22} className="animate-spin text-[#d6aa33]" />
+          <Loader2
+            size={22}
+            className="animate-spin text-[#d6aa33]"
+          />
           <span className="text-sm text-white/60">
             Loading settings...
           </span>
@@ -214,7 +271,7 @@ export default function AdminSettingsPage() {
           type="button"
           onClick={loadSettings}
           disabled={saving}
-          className="inline-flex items-center gap-2 border border-white/15 bg-[#151515] px-4 py-3 text-sm text-[#1b1a17] transition hover:border-[#d6aa33] disabled:opacity-50"
+          className="inline-flex items-center gap-2 border border-white/15 bg-[#151515] px-4 py-3 text-sm text-white transition hover:border-[#d6aa33] disabled:opacity-50"
         >
           <RefreshCw size={16} />
           Refresh
@@ -235,11 +292,16 @@ export default function AdminSettingsPage() {
       )}
 
       <form onSubmit={saveSettings} className="space-y-5">
+        {/* BUSINESS CONTACT */}
         <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
             <div className="bg-[#d6aa33]/10 p-3">
-              <Building2 size={21} className="text-[#d6aa33]" />
+              <Building2
+                size={21}
+                className="text-[#d6aa33]"
+              />
             </div>
+
             <div>
               <h2 className="text-base font-semibold text-white">
                 Business contact
@@ -254,7 +316,9 @@ export default function AdminSettingsPage() {
             <Field
               label="Business name"
               value={siteSettings.business_name}
-              onChange={(e) => updateSite("business_name", e.target.value)}
+              onChange={(e) =>
+                updateSite("business_name", e.target.value)
+              }
             />
 
             <Field
@@ -262,7 +326,9 @@ export default function AdminSettingsPage() {
               type="email"
               value={siteSettings.email}
               placeholder="Business email address"
-              onChange={(e) => updateSite("email", e.target.value)}
+              onChange={(e) =>
+                updateSite("email", e.target.value)
+              }
             />
 
             <Field
@@ -278,7 +344,9 @@ export default function AdminSettingsPage() {
               label="Location"
               value={siteSettings.location}
               placeholder="Business location"
-              onChange={(e) => updateSite("location", e.target.value)}
+              onChange={(e) =>
+                updateSite("location", e.target.value)
+              }
             />
 
             <Field
@@ -292,31 +360,27 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
+        {/* BANK DETAILS */}
         <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
             <div className="bg-[#d6aa33]/10 p-3">
-              <CreditCard size={21} className="text-[#d6aa33]" />
+              <CreditCard
+                size={21}
+                className="text-[#d6aa33]"
+              />
             </div>
+
             <div>
               <h2 className="text-base font-semibold text-white">
-                Bank transfer instructions
+                Bank transfer details
               </h2>
               <p className="mt-1 text-xs text-white/40">
-                Configure the account customers should use for payments.
+                Manage your bank account information for different currencies.
               </p>
             </div>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
-            <Field
-              label="Account name"
-              value={paymentSettings.account_name}
-              placeholder="Account holder name"
-              onChange={(e) =>
-                updatePayment("account_name", e.target.value)
-              }
-            />
-
             <Field
               label="Bank name"
               value={paymentSettings.bank_name}
@@ -327,21 +391,140 @@ export default function AdminSettingsPage() {
             />
 
             <Field
-              label="Account number"
-              value={paymentSettings.account_number}
-              placeholder="Account number"
+              label="Account name"
+              value={paymentSettings.account_name}
+              placeholder="Account holder name"
               onChange={(e) =>
-                updatePayment("account_number", e.target.value)
+                updatePayment("account_name", e.target.value)
               }
             />
           </div>
 
+          <div className="border-t border-white/10 pt-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Banknote
+                size={18}
+                className="text-[#d6aa33]"
+              />
+              <h3 className="text-sm font-semibold text-white">
+                Currency accounts
+              </h3>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field
+                label="Ghana Cedi (GHS)"
+                value={paymentSettings.account_ghs}
+                placeholder="GHS account number"
+                onChange={(e) =>
+                  updatePayment("account_ghs", e.target.value)
+                }
+              />
+
+              <Field
+                label="US Dollar (USD)"
+                value={paymentSettings.account_usd}
+                placeholder="USD account number"
+                onChange={(e) =>
+                  updatePayment("account_usd", e.target.value)
+                }
+              />
+
+              <Field
+                label="British Pound (GBP)"
+                value={paymentSettings.account_gbp}
+                placeholder="GBP account number"
+                onChange={(e) =>
+                  updatePayment("account_gbp", e.target.value)
+                }
+              />
+
+              <Field
+                label="Euro (EUR)"
+                value={paymentSettings.account_eur}
+                placeholder="EUR account number"
+                onChange={(e) =>
+                  updatePayment("account_eur", e.target.value)
+                }
+              />
+            </div>
+
+            <p className="mt-4 text-xs text-white/40">
+              Leave an account field empty if the banking details have not yet been provided.
+            </p>
+          </div>
+        </section>
+
+        {/* ONLINE PAYMENT */}
+        <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
+          <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+            <div className="bg-[#d6aa33]/10 p-3">
+              <Globe
+                size={21}
+                className="text-[#d6aa33]"
+              />
+            </div>
+
+            <div>
+              <h2 className="text-base font-semibold text-white">
+                Online payment
+              </h2>
+              <p className="mt-1 text-xs text-white/40">
+                Configure the online payment link customers will use.
+              </p>
+            </div>
+          </div>
+
+          <Field
+            label="Paystack payment link"
+            value={paymentSettings.paystack_url}
+            placeholder="https://paystack.shop/pay/..."
+            onChange={(e) =>
+              updatePayment("paystack_url", e.target.value)
+            }
+          />
+
+          {paymentSettings.paystack_url && (
+            <a
+              href={paymentSettings.paystack_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex text-sm font-semibold text-[#d6aa33] underline underline-offset-4"
+            >
+              Test Paystack payment link
+            </a>
+          )}
+        </section>
+
+        {/* PAYMENT INSTRUCTIONS */}
+        <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
+          <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+            <div className="bg-[#d6aa33]/10 p-3">
+              <ShieldCheck
+                size={21}
+                className="text-[#d6aa33]"
+              />
+            </div>
+
+            <div>
+              <h2 className="text-base font-semibold text-white">
+                Payment instructions
+              </h2>
+              <p className="mt-1 text-xs text-white/40">
+                Tell customers how to complete and confirm payments.
+              </p>
+            </div>
+          </div>
+
           <TextArea
-            label="Payment instructions"
+            label="Instructions"
             value={paymentSettings.payment_instructions}
             placeholder="Explain how customers should make payments and submit proof of payment."
             onChange={(e) =>
-              updatePayment("payment_instructions", e.target.value)
+              updatePayment(
+                "payment_instructions",
+                e.target.value,
+              )
             }
           />
 
@@ -351,13 +534,12 @@ export default function AdminSettingsPage() {
               className="mt-0.5 shrink-0 text-[#d6aa33]"
             />
             <p className="text-xs leading-5 text-white/50">
-              Payment details are stored in a separate admin-protected table.
-              Confirm all banking information before making it available to
-              customers.
+              Confirm all banking information before making it available to customers. Payment settings are managed separately from public business contact information.
             </p>
           </div>
         </section>
 
+        {/* SAVE */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-xs text-white/40">
             Changes are saved directly to your Supabase database.
@@ -366,7 +548,10 @@ export default function AdminSettingsPage() {
           <Button type="submit" disabled={saving}>
             {saving ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
                 Saving...
               </>
             ) : (

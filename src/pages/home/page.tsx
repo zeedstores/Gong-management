@@ -1,9 +1,17 @@
 
 import { useEffect, useState } from "react"
-import { ArrowDown, ArrowRight, Music2 } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowRight,
+  Music2,
+  Handshake,
+  Megaphone,
+  Users,
+} from "lucide-react"
 import { Link } from "react-router"
 import { supabase } from "../../lib/supabase"
 import { ButtonLink, Eyebrow, Heading, Status } from "../../components/ui"
+import PaymentModal from "../../components/PaymentModal"
 
 type Service = {
   id: string
@@ -36,6 +44,7 @@ type Equipment = {
   name: string
   category: string | null
   description: string | null
+  image_url: string | null
 }
 
 type Property = {
@@ -45,6 +54,7 @@ type Property = {
   location: string
   description: string | null
   price: number | null
+  image_url: string | null
 }
 
 type PortfolioItem = {
@@ -118,6 +128,7 @@ function formatDate(date: string | null) {
 
 export default function HomePage() {
   const [data, setData] = useState<HomeData>(emptyHomeData)
+  const [paymentOpen, setPaymentOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -156,13 +167,13 @@ export default function HomePage() {
 
         supabase
           .from("equipment")
-          .select("id, name, category, description")
+          .select("id, name, category, description, image_url")
           .eq("is_published", true)
           .limit(8),
 
         supabase
           .from("properties")
-          .select("id, title, type, location, description, price")
+          .select("id, title, type, location, description, price, image_url")
           .eq("is_published", true)
           .limit(8),
 
@@ -274,36 +285,35 @@ export default function HomePage() {
         </a>
       </section>
 
-    {/* TRUST STRIP */}
-<section className="trust-strip overflow-hidden">
-  <div className="shell !block overflow-hidden">
-    <div className="trust-marquee flex w-max flex-nowrap items-center">
-      {[1, 2].map((group) => (
-        <div
-          key={group}
-          aria-hidden={group === 2}
-          className="flex shrink-0 flex-nowrap items-center gap-14 px-2"
-        >
-          {[
-            "Trusted by Artists",
-            "Trusted by Sponsors",
-            "Born in Tema",
-            "Built for the World",
-          ].map((item) => (
-            <span
-              key={`${group}-${item}`}
-              className="!inline-flex !w-auto shrink-0 flex-nowrap items-center  whitespace-nowrap"
-            >
-              <Music2 size={15} className="shrink-0" />
-              {item}
-            </span>
-          ))}
+      {/* TRUST STRIP */}
+      <section className="trust-strip overflow-hidden">
+        <div className="shell !block overflow-hidden">
+          <div className="trust-marquee flex w-max flex-nowrap items-center">
+            {[1, 2].map((group) => (
+              <div
+                key={group}
+                aria-hidden={group === 2}
+                className="flex shrink-0 flex-nowrap items-center gap-14 px-2"
+              >
+                {[
+                  "Trusted by Artists",
+                  "Trusted by Sponsors",
+                  "Born in Tema",
+                  "Built for the World",
+                ].map((item) => (
+                  <span
+                    key={`${group}-${item}`}
+                    className="!inline-flex !w-auto shrink-0 flex-nowrap items-center whitespace-nowrap"
+                  >
+                    <Music2 size={15} className="shrink-0" />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
-
+      </section>
 
       {/* ABOUT */}
       <section id="story" className="section light-section text-[#090909]">
@@ -331,9 +341,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SERVICES */}
-      {data.services.length > 0 && (
-        <section className="section dark-section">
+     {/* SERVICES */}
+{data.services.length > 0 && (
+  <section className="section dark-section home-services-section">
           <div className="shell section-heading">
             <div>
               <Eyebrow>What we do</Eyebrow>
@@ -437,199 +447,282 @@ export default function HomePage() {
         </section>
       )}
 
-      
-{/* SHOP */}
-{data.products.length > 0 && (
-  <section className="section light-section text-[#090909]">
-    <div className="shell">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <Eyebrow dark>Official Gong Store</Eyebrow>
-          <Heading>
-            WEAR THE
-            <br />
-            CULTURE.
-          </Heading>
-          <p className="mt-3 max-w-md text-sm text-black/65">
-            Explore official Gong merchandise and get your favourites.
-          </p>
-        </div>
+      {/* SHOP */}
+      {data.products.length > 0 && (
+        <section className="section light-section text-[#090909]">
+          <div className="shell">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+              <div>
+                <Eyebrow dark>Official Gong Store</Eyebrow>
+                <Heading>
+                  WEAR THE
+                  <br />
+                  CULTURE.
+                </Heading>
+                <p className="mt-3 max-w-md text-sm text-black/65">
+                  Explore official Gong merchandise and get your favourites.
+                </p>
+              </div>
 
-        <Link
-          to="/shop"
-          className="inline-flex items-center gap-2 border border-[#090909]  px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d6aa33] hover:text-[#090909]"
-        >
-          Visit the shop <ArrowRight size={16} />
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-        {data.products.map((product) => (
-          <Link
-            to="/shop"
-            key={product.id}
-            className="group min-w-0 overflow-hidden border border-black/10 bg-white"
-          >
-            <div className="relative overflow-hidden bg-[#f3f0e8]">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  loading="lazy"
-                  decoding="async"
-                  width="640"
-                  height="640"
-                  className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex aspect-square items-center justify-center">
-                  <Music2 size={32} className="text-black/20" />
-                </div>
-              )}
-
-              <span className="absolute left-2 top-2 bg-[#090909] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white sm:left-3 sm:top-3 sm:text-xs">
-                {product.availability}
-              </span>
+              <Link
+                to="/shop"
+                className="inline-flex items-center gap-2 border border-[#090909] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d6aa33] hover:text-[#090909]"
+              >
+                Visit the shop <ArrowRight size={16} />
+              </Link>
             </div>
 
-            <div className="p-3 sm:p-4">
-              <h3 className="truncate text-sm font-bold sm:text-base">
-                {product.name}
-              </h3>
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+              {data.products.map((product) => (
+                <Link
+                  to="/shop"
+                  key={product.id}
+                  className="group min-w-0 overflow-hidden border border-black/10 bg-white"
+                >
+                  <div className="relative overflow-hidden bg-[#f3f0e8]">
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        loading="lazy"
+                        decoding="async"
+                        width="640"
+                        height="640"
+                        className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex aspect-square items-center justify-center">
+                        <Music2 size={32} className="text-black/20" />
+                      </div>
+                    )}
 
-              <p className="mt-1 text-sm font-semibold text-black/65">
-                GHS {Number(product.price).toFixed(2)}
-              </p>
+                    <span className="absolute left-2 top-2 bg-[#090909] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white sm:left-3 sm:top-3 sm:text-xs">
+                      {product.availability}
+                    </span>
+                  </div>
 
-              <span className="mt-3 inline-flex w-full items-center justify-center gap-2 bg-[#d6aa33] px-3 py-2.5 text-xs font-bold text-[#090909] transition group-hover:bg-[#090909] group-hover:text-white sm:text-sm">
-                Order now <ArrowRight size={14} />
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+                  <div className="p-3 sm:p-4">
+                    <h3 className="truncate text-sm font-bold sm:text-base">
+                      {product.name}
+                    </h3>
 
-      <div className="mt-7 text-center">
-        <Link
-          to="/shop"
-          className="inline-flex items-center gap-2 text-sm font-bold underline underline-offset-4"
-        >
-          Explore all products <ArrowRight size={16} />
-        </Link>
-      </div>
-    </div>
-  </section>
-)}
+                    <p className="mt-1 text-sm font-semibold text-black/65">
+                      GHS {Number(product.price).toFixed(2)}
+                    </p>
 
-
-      {/* EQUIPMENT AND PROPERTIES */}
-      {(data.equipment.length > 0 || data.properties.length > 0) && (
-        <section className="section dark-section compact-section">
-          <div className="shell three-preview">
-            <div>
-              <Eyebrow>Equipment</Eyebrow>
-              <Heading>
-                THE GEAR
-                <br />
-                TO GO BIG.
-              </Heading>
-
-              <p>
-                {data.equipment.length} production categories available in our
-                equipment catalogue.
-              </p>
-
-              <ButtonLink to="/equipment">Request equipment quote</ButtonLink>
-            </div>
-
-            <div className="preview-photo">
-              <img
-                src="/assets/event-stage.jpg"
-                alt="Live event stage production"
-                loading="lazy"
-                decoding="async"
-                width="800"
-                height="1000"
-              />
-            </div>
-
-            <div className="mini-list">
-              <Eyebrow>Property desk</Eyebrow>
-
-              {data.properties.map((item) => (
-                <Link key={item.id} to="/properties">
-                  <span>
-                    {item.type} · {item.location}
-                  </span>
-                  <strong>{item.title}</strong>
-                  <ArrowRight size={18} />
+                    <span className="mt-3 inline-flex w-full items-center justify-center gap-2 bg-[#d6aa33] px-3 py-2.5 text-xs font-bold text-[#090909] transition group-hover:bg-[#090909] group-hover:text-white sm:text-sm">
+                      Order now <ArrowRight size={14} />
+                    </span>
+                  </div>
                 </Link>
               ))}
+            </div>
 
-              <ButtonLink secondary to="/properties">
-                Explore properties
-              </ButtonLink>
+            <div className="mt-7 text-center">
+              <Link
+                to="/shop"
+                className="inline-flex items-center gap-2 text-sm font-bold underline underline-offset-4"
+              >
+                Explore all products <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </section>
       )}
 
-      
-{/* PORTFOLIO */}
-{data.portfolio.length > 0 && (
-  <section className="section light-section text-[#090909] portfolio-home">
-    <div className="shell mb-8 flex flex-wrap items-end justify-between gap-5">
-      <div>
-        <Eyebrow dark>Selected work</Eyebrow>
-        <Heading>
-          PROOF.
-          <br />
-          NOT PROMISES.
-        </Heading>
-      </div>
+      {/* EQUIPMENT */}
+      {data.equipment.length > 0 && (
+        <section className="section dark-section">
+          <div className="shell">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+              <div>
+                <Eyebrow>Production equipment</Eyebrow>
+                <Heading>
+                  THE GEAR
+                  <br />
+                  TO GO BIG.
+                </Heading>
+                <p className="mt-3 max-w-md text-sm text-white/65">
+                  Professional equipment and production resources for events and live experiences.
+                </p>
+              </div>
+              <ButtonLink to="/equipment">Explore equipment</ButtonLink>
+            </div>
 
-      <Link
-        to="/portfolio"
-        className="inline-flex items-center gap-2  px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d6aa33] hover:text-[#090909]"
-      >
-        See the portfolio <ArrowRight size={16} />
-      </Link>
-    </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {data.equipment.slice(0, 6).map((item) => (
+                <Link
+                  key={item.id}
+                  to="/equipment"
+                  className="group border border-white/15 bg-white/5 p-6 transition hover:border-[#d6aa33]"
+                >
+                  {item.image_url && (
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      loading="lazy"
+                      className="mb-2 aspect-[4/3] w-full object-cover"
+                    />
+                  )}
 
-    <div className="shell grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-      {data.portfolio.map((item) => (
-        <figure
-          key={item.id}
-          className="group min-w-0 overflow-hidden bg-white"
-        >
-          {item.image_url ? (
-            <img
-              src={item.image_url}
-              alt={item.title}
-              loading="lazy"
-              decoding="async"
-              width="640"
-              height="800"
-              className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="aspect-[4/5] bg-[#e8e4da]" />
-          )}
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#d6aa33]">
+                    {item.category || "Production equipment"}
+                  </span>
 
-          <figcaption className="p-3 sm:p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-black/55 sm:text-xs">
-              {item.category}
-            </span>
-            <h3 className="mt-1 text-sm font-bold sm:text-base">
-              {item.title}
-            </h3>
-          </figcaption>
-        </figure>
-      ))}
-    </div>
-  </section>
-)}
+                  <h3 className="mt-1 text-xl font-bold text-white">
+                    {item.name}
+                  </h3>
 
+                  {item.description && (
+                    <p className="mt-1 text-sm text-white/65">
+                      {item.description}
+                    </p>
+                  )}
+
+                  <span className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[#d6aa33]">
+                    View equipment <ArrowRight size={16} />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* PROPERTIES */}
+      {data.properties.length > 0 && (
+        <section className="section light-section text-[#090909]">
+          <div className="shell">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+              <div>
+                <Eyebrow dark>Gong Property Desk</Eyebrow>
+                <Heading>
+                  FIND YOUR
+                  <br />
+                  NEXT PROPERTY.
+                </Heading>
+                <p className="mt-3 max-w-md text-sm text-black/65">
+                  Explore available land, residential and commercial property opportunities.
+                </p>
+              </div>
+              <ButtonLink to="/properties">Explore all properties</ButtonLink>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {data.properties.slice(0, 6).map((item) => (
+                <Link
+                  key={item.id}
+                  to="/properties"
+                  className="group min-w-0 overflow-hidden border border-black/10 bg-white"
+                >
+                  <div className="overflow-hidden bg-[#e8e4da]">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex aspect-[4/3] items-center justify-center">
+                        <Music2 size={32} className="text-black/20" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-black/55">
+                      {item.type} · {item.location}
+                    </span>
+                    <h3 className="mt-2 text-lg font-bold">{item.title}</h3>
+
+                    {item.description && (
+                      <p className="mt-2 line-clamp-2 text-sm text-black/65">
+                        {item.description}
+                      </p>
+                    )}
+
+                    {item.price !== null && (
+                      <p className="mt-4 font-bold">
+                        GHS {Number(item.price).toLocaleString("en-GH")}
+                      </p>
+                    )}
+
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold">
+                      View property <ArrowRight size={16} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-8 text-center">
+              <Link
+                to="/properties"
+                className="inline-flex items-center gap-2 text-sm font-bold underline underline-offset-4"
+              >
+                View all available properties <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* PORTFOLIO */}
+      {data.portfolio.length > 0 && (
+        <section className="section light-section text-[#090909] portfolio-home">
+          <div className="shell mb-8 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <Eyebrow dark>Selected work</Eyebrow>
+              <Heading>
+                PROOF.
+                <br />
+                NOT PROMISES.
+              </Heading>
+            </div>
+
+            <Link
+              to="/portfolio"
+              className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d6aa33] hover:text-[#090909]"
+            >
+              See the portfolio <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          <div className="shell grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+            {data.portfolio.map((item) => (
+              <figure
+                key={item.id}
+                className="group min-w-0 overflow-hidden bg-white"
+              >
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    loading="lazy"
+                    decoding="async"
+                    width="640"
+                    height="800"
+                    className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="aspect-[4/5] bg-[#e8e4da]" />
+                )}
+
+                <figcaption className="p-3 sm:p-4">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-black/55 sm:text-xs">
+                    {item.category}
+                  </span>
+                  <h3 className="mt-1 text-sm font-bold sm:text-base">
+                    {item.title}
+                  </h3>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* FOUNDATION */}
       <section className="section light-section text-[#090909]">
@@ -649,16 +742,18 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-  <ButtonLink to="/foundation">Explore the foundation</ButtonLink>
+            <ButtonLink to="/foundation">
+              Explore the foundation
+            </ButtonLink>
 
-  <ButtonLink
-    secondary
-    to="/foundation"
-     className="!border-black !text-black hover:!border-[#d6aa33]"
-  >
-    Donate now
-  </ButtonLink>
-</div>
+            <button
+              type="button"
+              onClick={() => setPaymentOpen(true)}
+              className="inline-flex items-center justify-center border border-black px-5 py-3 text-sm font-semibold text-black transition hover:border-[#d6aa33] hover:bg-[#d6aa33]"
+            >
+              Donate now
+            </button>
+          </div>
         </div>
 
         {data.campaigns.length > 0 && (
@@ -700,6 +795,81 @@ export default function HomePage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* SPONSORSHIP CTA */}
+      <section className="section dark-section relative overflow-hidden">
+        <div className="shell">
+          <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div>
+              <Eyebrow>Partner with Gong Managements</Eyebrow>
+
+              <Heading>
+                PUT YOUR
+                <br />
+                BRAND IN THE
+                <br />
+                <span className="text-[#d6aa33]">SPOTLIGHT.</span>
+              </Heading>
+
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70">
+                Connect your brand with audiences through music, culture and
+                unforgettable live experiences. Become a Gong Managements
+                sponsor and put your business in front of the right people.
+              </p>
+
+              <div className="mt-8">
+                <ButtonLink to="/sponsorship">
+                  Explore sponsorship packages
+                </ButtonLink>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="border border-white/15 bg-white/5 p-6">
+                <Megaphone
+                  size={30}
+                  className="text-[#d6aa33]"
+                />
+                <h3 className="mt-5 text-lg font-bold text-white">
+                  Brand visibility
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">
+                  Get your brand seen across event promotions, flyers and
+                  Gong Managements social media platforms.
+                </p>
+              </div>
+
+              <div className="border border-white/15 bg-white/5 p-6">
+                <Users
+                  size={30}
+                  className="text-[#d6aa33]"
+                />
+                <h3 className="mt-5 text-lg font-bold text-white">
+                  Audience access
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">
+                  Connect directly with audiences through live experiences
+                  and event activations.
+                </p>
+              </div>
+
+              <div className="border border-white/15 bg-white/5 p-6 sm:col-span-2">
+                <Handshake
+                  size={30}
+                  className="text-[#d6aa33]"
+                />
+                <h3 className="mt-5 text-lg font-bold text-white">
+                  Strategic partnerships
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">
+                  Choose a sponsorship package that aligns with your brand
+                  objectives and business goals.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* TEAM */}
@@ -793,6 +963,7 @@ export default function HomePage() {
                 <div className="p-5">
                   <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-black/55">
                     {post.category && <span>{post.category}</span>}
+
                     {post.published_at && (
                       <>
                         <span>·</span>
@@ -866,6 +1037,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* DONATION PAYMENT MODAL */}
+      {paymentOpen && (
+        <PaymentModal onClose={() => setPaymentOpen(false)} />
+      )}
     </>
   )
 }

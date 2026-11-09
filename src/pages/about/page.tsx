@@ -4,12 +4,13 @@ import { ButtonLink, Eyebrow, Heading, PageHero } from "../../components/ui"
 export default function AboutPage() {
   return (
     <>
-      <PageHero
-        eyebrow="About Gong"
-        title="BORN IN TEMA. BUILT FOR THE WORLD."
-        copy="A Ghanaian event and artist management company connecting Gospel, Afrobeat, Reggae and Dancehall with professional production and fearless talent development."
-        image="/assets/event-celebration.jpg"
-      />
+     <PageHero
+  eyebrow="About Gong"
+  title="BORN IN TEMA. BUILT FOR THE WORLD."
+  copy="A Ghanaian event and artist management company connecting Gospel, Afrobeat, Reggae and Dancehall with professional production and fearless talent development."
+  image="/assets/gong-logo.png"
+  imageFit="contain"
+/>
 
       {/* COMPANY STORY */}
       <section className="section light-section py-16 sm:py-20 lg:py-28">

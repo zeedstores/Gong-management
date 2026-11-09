@@ -14,14 +14,18 @@ import {
   HandCoins,
   Users,
   BriefcaseBusiness,
+  Building2,
+  Briefcase,
 } from "lucide-react"
 
 const links = [
   { label: "Overview", path: "/admin", Icon: LayoutDashboard },
+  { label: "Services", path: "/admin/services", Icon: Briefcase },
   { label: "Products", path: "/admin/products", Icon: Package },
   { label: "Events & tickets", path: "/admin/events", Icon: CalendarDays },
   { label: "Ticket orders", path: "/admin/orders", Icon: Ticket },
   { label: "Equipment", path: "/admin/equipment", Icon: Wrench },
+  { label: "Properties", path: "/admin/properties", Icon: Building2 },
   { label: "Team", path: "/admin/team", Icon: Users },
   { label: "Portfolio", path: "/admin/portfolio", Icon: BriefcaseBusiness },
   { label: "Enquiries", path: "/admin/enquiries", Icon: MessageSquare },
@@ -85,3 +89,4 @@ export default function AdminLayout() {
     </div>
   )
 }
+

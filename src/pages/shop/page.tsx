@@ -1,6 +1,12 @@
 
-import { useEffect, useMemo, useState } from "react"
-import { Search, ShoppingBag } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Link } from "react-router"
+import {
+  Search,
+  ShoppingBag,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useCart } from "../../components/CartContext"
 import { Button, Eyebrow, Heading, PageHero } from "../../components/ui"
@@ -24,8 +30,11 @@ export default function ShopPage() {
   const [category, setCategory] = useState("All")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [addedProduct, setAddedProduct] = useState("")
 
-  const { add } = useCart()
+  const noticeTimeout = useRef<number | null>(null)
+
+  const { add, count } = useCart()
 
   useEffect(() => {
     let active = true
@@ -68,6 +77,29 @@ export default function ShopPage() {
       active = false
     }
   }, [])
+
+  // Clean up notification timer when the page unmounts.
+  useEffect(() => {
+    return () => {
+      if (noticeTimeout.current !== null) {
+        window.clearTimeout(noticeTimeout.current)
+      }
+    }
+  }, [])
+
+  function handleAddToCart(product: Product) {
+    add(product.id)
+
+    setAddedProduct(product.name)
+
+    if (noticeTimeout.current !== null) {
+      window.clearTimeout(noticeTimeout.current)
+    }
+
+    noticeTimeout.current = window.setTimeout(() => {
+      setAddedProduct("")
+    }, 2500)
+  }
 
   const categories = useMemo(
     () => [
@@ -189,7 +221,9 @@ export default function ShopPage() {
                 size={32}
                 className="mx-auto text-black/35"
               />
-              <h2 className="mt-5 text-xl font-bold">The store is getting ready.</h2>
+              <h2 className="mt-5 text-xl font-bold">
+                The store is getting ready.
+              </h2>
               <p className="mt-2 text-sm text-black/60">
                 Check back soon for Gong products and merchandise.
               </p>
@@ -222,7 +256,7 @@ export default function ShopPage() {
                             decoding="async"
                             width="640"
                             height="800"
-                            className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="aspect-[4/5] w-full object-contain transition-transform duration-500 group-hover:scale-105"
                           />
                         ) : (
                           <div className="flex aspect-[4/5] items-center justify-center">
@@ -255,7 +289,7 @@ export default function ShopPage() {
                           </strong>
 
                           <Button
-                            onClick={() => add(product.id)}
+                            onClick={() => handleAddToCart(product)}
                             className="w-full sm:w-auto"
                           >
                             <ShoppingBag size={15} />
@@ -287,6 +321,47 @@ export default function ShopPage() {
           )}
         </div>
       </section>
+
+      {/* ADD TO CART SUCCESS NOTIFICATION */}
+      {addedProduct && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-48 left-1/2 z-[9999] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-3 rounded-xl border border-white/20 bg-[#16a34a] px-5 py-4 text-white shadow-2xl animate-in fade-in slide-in-from-bottom-3 duration-300 sm:bottom-32"
+        >
+          <CheckCircle2 size={25} className="shrink-0" />
+
+          <div className="min-w-0">
+            <p className="text-sm font-bold">
+              Successfully added to cart!
+            </p>
+            <p className="truncate text-xs text-white/90">
+              {addedProduct}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING CART BUTTON - VISIBLE WHILE CART HAS ITEMS */}
+      {count > 0 && (
+        <Link
+          to="/cart"
+          aria-label={`View cart with ${count} items`}
+         className="fixed bottom-6 left-4 z-[9998] inline-flex items-center gap-3 rounded-full bg-[#facc15] px-4 py-3 text-black shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-[#fde047] sm:bottom-28 sm:left-auto sm:right-8 sm:px-5 sm:py-3.5"
+        >
+          <span className="relative">
+            <ShoppingBag size={23} />
+
+            <span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#090909] px-1 text-[10px] font-bold text-white">
+              {count}
+            </span>
+          </span>
+
+          <span className="text-sm font-bold">View Cart</span>
+
+          <ArrowRight size={17} />
+        </Link>
+      )}
     </>
   )
 }

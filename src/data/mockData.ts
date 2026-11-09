@@ -150,16 +150,15 @@ export const portfolio = [
   },
 ]
 
+
 export const navItems = [
   ["Home", "/"],
   ["About Us", "/about"],
   ["Services", "/services"],
-  ["Flagship Events", "/events"],
-  ["Foundation", "/foundation"],
+  ["Events", "/events"],
   ["Portfolio", "/portfolio"],
   ["Shop", "/shop"],
-  ["Equipment Hire", "/equipment"],
+  ["Foundation", "/foundation"],
   ["Properties", "/properties"],
-  ["Booking", "/booking"],
   ["Contact", "/contact"],
 ] as const

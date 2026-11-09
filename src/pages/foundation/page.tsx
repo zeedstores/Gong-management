@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
 import { supabase } from "../../lib/supabase"
+import PaymentModal from "../../components/PaymentModal"
 import {
+  Button,
   ButtonLink,
   Eyebrow,
   Heading,
@@ -59,6 +61,7 @@ export default function FoundationPage() {
   const [postsLoading, setPostsLoading] = useState(true)
   const [campaignsError, setCampaignsError] = useState(false)
   const [postsError, setPostsError] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -124,18 +127,24 @@ export default function FoundationPage() {
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 sm:py-20 md:grid-cols-2 md:items-center lg:px-8 lg:py-24">
         <div>
           <Eyebrow>Why we exist</Eyebrow>
+
           <div className="mt-3">
             <Heading>Impact that goes beyond the moment.</Heading>
           </div>
+
           <p className="mt-5 text-base leading-7 text-neutral-600 sm:text-lg sm:leading-8">
             The Gong Foundation extends our purpose beyond events
             through initiatives designed to support people and
             communities. Every act of support can help move that
             mission forward.
           </p>
+
           <div className="mt-7 flex flex-col gap-3 min-[380px]:flex-row">
-            <ButtonLink to="#campaigns">Explore campaigns</ButtonLink>
-            <ButtonLink to="/contact" variant="secondary">
+            <ButtonLink to="#campaigns">
+              Explore campaigns
+            </ButtonLink>
+
+            <ButtonLink to="/contact" secondary>
               Partner with us
             </ButtonLink>
           </div>
@@ -151,7 +160,9 @@ export default function FoundationPage() {
               event.currentTarget.style.display = "none"
             }}
           />
+
           <div className="absolute inset-0 bg-neutral-950/10" />
+
           <p className="relative rounded-full bg-white/90 px-5 py-3 text-sm font-medium text-neutral-800 shadow-sm">
             Purpose. People. Progress.
           </p>
@@ -159,19 +170,25 @@ export default function FoundationPage() {
       </section>
 
       {/* Campaigns */}
-      <section id="campaigns" className="scroll-mt-20 bg-neutral-50 py-14 sm:py-20">
+      <section
+        id="campaigns"
+        className="scroll-mt-20 bg-neutral-50 py-14 sm:py-20"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-2xl">
               <Eyebrow>Make a difference</Eyebrow>
+
               <div className="mt-3">
                 <Heading>Campaigns that matter.</Heading>
               </div>
+
               <p className="mt-4 leading-7 text-neutral-600">
                 Discover our current initiatives and find a way to
                 contribute.
               </p>
             </div>
+
             <a
               href="#foundation-news"
               className="w-fit text-sm font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
@@ -188,10 +205,14 @@ export default function FoundationPage() {
             </div>
           ) : campaignsError ? (
             <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-10">
-              <h3 className="text-lg font-semibold">Campaigns couldn't load.</h3>
+              <h3 className="text-lg font-semibold">
+                Campaigns couldn't load.
+              </h3>
+
               <p className="mt-2 text-sm leading-6 text-neutral-600">
                 Please try again later or contact our team.
               </p>
+
               <div className="mt-5">
                 <ButtonLink to="/contact">Contact us</ButtonLink>
               </div>
@@ -201,15 +222,23 @@ export default function FoundationPage() {
               <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-neutral-100 text-xl">
                 ✳
               </span>
+
               <h3 className="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
                 Something meaningful starts here.
               </h3>
+
               <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-neutral-600 sm:text-base">
                 There are no active campaigns right now. Check back
                 soon to discover upcoming initiatives.
               </p>
+
               <div className="mt-6">
-                <ButtonLink to="/contact">Support the foundation</ButtonLink>
+                <Button
+                  type="button"
+                  onClick={() => setPaymentOpen(true)}
+                >
+                  Support the foundation
+                </Button>
               </div>
             </div>
           ) : (
@@ -232,6 +261,7 @@ export default function FoundationPage() {
                         Campaign image coming soon
                       </div>
                     )}
+
                     <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-neutral-800">
                       Active campaign
                     </span>
@@ -241,6 +271,7 @@ export default function FoundationPage() {
                     <h3 className="text-xl font-semibold leading-snug tracking-tight">
                       {campaign.title}
                     </h3>
+
                     <p className="mt-3 flex-1 text-sm leading-7 text-neutral-600 sm:text-base">
                       {campaign.description ||
                         "More information about this campaign will be available soon."}
@@ -251,6 +282,7 @@ export default function FoundationPage() {
                         <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
                           Fundraising goal
                         </p>
+
                         <p className="mt-1 text-lg font-semibold">
                           {new Intl.NumberFormat("en", {
                             style: "currency",
@@ -262,9 +294,12 @@ export default function FoundationPage() {
                     )}
 
                     <div className="mt-5">
-                      <ButtonLink to="/contact">
+                      <Button
+                        type="button"
+                        onClick={() => setPaymentOpen(true)}
+                      >
                         Support this campaign
-                      </ButtonLink>
+                      </Button>
                     </div>
                   </div>
                 </article>
@@ -275,13 +310,18 @@ export default function FoundationPage() {
       </section>
 
       {/* Foundation news */}
-      <section id="foundation-news" className="scroll-mt-20 py-14 sm:py-20">
+      <section
+        id="foundation-news"
+        className="scroll-mt-20 py-14 sm:py-20"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 max-w-2xl sm:mb-10">
             <Eyebrow>Stories & updates</Eyebrow>
+
             <div className="mt-3">
               <Heading>News from the foundation.</Heading>
             </div>
+
             <p className="mt-4 leading-7 text-neutral-600">
               Follow our latest announcements, community initiatives,
               and progress.
@@ -296,6 +336,7 @@ export default function FoundationPage() {
                   className="animate-pulse overflow-hidden rounded-2xl border border-neutral-200"
                 >
                   <div className="aspect-[5/3] bg-neutral-200" />
+
                   <div className="space-y-3 p-5">
                     <div className="h-4 w-1/3 rounded bg-neutral-200" />
                     <div className="h-5 w-4/5 rounded bg-neutral-200" />
@@ -310,7 +351,10 @@ export default function FoundationPage() {
             </p>
           ) : posts.length === 0 ? (
             <div className="rounded-2xl bg-neutral-50 px-5 py-10 sm:px-8">
-              <h3 className="text-lg font-semibold">Our stories are coming soon.</h3>
+              <h3 className="text-lg font-semibold">
+                Our stories are coming soon.
+              </h3>
+
               <p className="mt-2 max-w-xl text-sm leading-7 text-neutral-600">
                 Foundation news and impact stories published by our
                 team will appear here.
@@ -337,19 +381,27 @@ export default function FoundationPage() {
                       </div>
                     )}
                   </div>
+
                   <div className="flex flex-1 flex-col p-5 sm:p-6">
                     <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
                       {formatDate(post.published_at)}
                     </p>
+
                     <h3 className="mt-3 text-lg font-semibold leading-snug">
                       {post.title}
                     </h3>
+
                     <p className="mt-3 flex-1 text-sm leading-7 text-neutral-600">
-                      {post.excerpt || "Read the latest update from the Gong Foundation."}
+                      {post.excerpt ||
+                        "Read the latest update from the Gong Foundation."}
                     </p>
+
                     <p className="mt-4 text-xs text-neutral-500">
-                      {post.author ? `By ${post.author}` : "Gong Foundation"}
+                      {post.author
+                        ? `By ${post.author}`
+                        : "Gong Foundation"}
                     </p>
+
                     <Link
                       to={`/foundation/news/${post.slug}`}
                       className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
@@ -372,23 +424,40 @@ export default function FoundationPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-300">
                 Be part of the impact
               </p>
+
               <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                 Your support can help move a good cause forward.
               </h2>
+
               <p className="mt-4 text-sm leading-7 text-neutral-300 sm:text-base">
                 Interested in donating, partnering, or supporting an
                 initiative? Get in touch with our team.
               </p>
             </div>
+
             <div className="flex flex-col gap-3 sm:flex-row md:flex-col">
-              <ButtonLink to="/contact" variant="secondary">
-                Discuss a donation
+              <Button
+                type="button"
+                className="button-secondary"
+                onClick={() => setPaymentOpen(true)}
+              >
+                Donate now
+              </Button>
+
+              <ButtonLink to="/contact">
+                Partner with us
               </ButtonLink>
-              <ButtonLink to="/contact">Partner with us</ButtonLink>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Shared payment modal */}
+      {paymentOpen && (
+        <PaymentModal
+          onClose={() => setPaymentOpen(false)}
+        />
+      )}
     </main>
   )
 }

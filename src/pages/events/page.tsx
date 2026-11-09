@@ -93,7 +93,7 @@ export default function EventsPage() {
         eyebrow="Flagship events"
         title="THE STAGE IS WHERE WE SPEAK LOUDEST."
         copy="Three distinct experiences. Worship, encounter and festival energy — each produced with its own visual world."
-        image="/assets/event-performers.jpg"
+        image="/assets/event.jpeg"
       />
 
       <section className="events-page mx-auto max-w-7xl space-y-8 px-4 py-12 sm:px-6 md:py-16 lg:px-8">
@@ -250,7 +250,7 @@ export default function EventsPage() {
                         </ButtonLink>
                       )}
 
-                      <ButtonLink to="/contact">
+                      <ButtonLink to="/sponsorship">
                         Sponsorship enquiry
                       </ButtonLink>
                     </div>

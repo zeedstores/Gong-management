@@ -1,6 +1,7 @@
 
+import { useState } from "react"
 import { Link } from "react-router"
-import { Minus, Plus, Trash2, MessageCircle } from "lucide-react"
+import { Minus, Plus, Trash2, CreditCard } from "lucide-react"
 import { useCart } from "../../components/CartContext"
 import {
   Button,
@@ -8,6 +9,7 @@ import {
   Heading,
   PageHero,
 } from "../../components/ui"
+import PaymentModal from "../../components/PaymentModal"
 
 export default function CartPage() {
   const {
@@ -19,55 +21,22 @@ export default function CartPage() {
     remove,
   } = useCart()
 
+  const [paymentOpen, setPaymentOpen] = useState(false)
+
   const items = products.filter((product) => cart[product.id])
 
-  const checkoutOnWhatsApp = () => {
-    // WhatsApp number will be loaded from Admin Settings later.
-    // Do not hardcode a business number here.
-    const whatsappNumber = ""
-
-    if (!whatsappNumber) {
-      alert(
-        "WhatsApp ordering is currently unavailable. Please contact Gong Management.",
-      )
-      return
-    }
-
-    const orderLines = items.map((product, index) => {
-      const quantity = cart[product.id]
-      const unitPrice = Number(product.price)
-      const subtotal = unitPrice * quantity
-
-      return [
-        `${index + 1}. ${product.name}`,
-        `Quantity: ${quantity}`,
-        `Unit price: GHS ${unitPrice.toFixed(2)}`,
-        `Subtotal: GHS ${subtotal.toFixed(2)}`,
-      ].join("\n")
-    })
-
-    const message = [
-      "Hello Gong Management, I would like to place an order.",
-      "",
-      ...orderLines.flatMap((line) => [line, ""]),
-      `TOTAL: GHS ${total.toFixed(2)}`,
-      "",
-      "Please confirm product availability, delivery/collection options and payment details.",
-      "",
-      "Thank you.",
-    ].join("\n")
-
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
-
-    window.open(url, "_blank", "noopener,noreferrer")
-  }
+  const orderItems = items.map((product) => ({
+    name: product.name,
+    quantity: cart[product.id],
+    unitPrice: Number(product.price),
+  }))
 
   return (
     <>
       <PageHero
         eyebrow="Your order"
         title="REVIEW THE BAG."
-        copy="Review your selected products and prepare your order request for WhatsApp checkout."
+        copy="Review your selected products and complete your order securely."
       />
 
       <section className="section light-section">
@@ -115,10 +84,7 @@ export default function CartPage() {
                   <div className="quantity">
                     <Button
                       onClick={() =>
-                        setQuantity(
-                          product.id,
-                          cart[product.id] - 1,
-                        )
+                        setQuantity(product.id, cart[product.id] - 1)
                       }
                       disabled={cart[product.id] <= 1}
                     >
@@ -129,10 +95,7 @@ export default function CartPage() {
 
                     <Button
                       onClick={() =>
-                        setQuantity(
-                          product.id,
-                          cart[product.id] + 1,
-                        )
+                        setQuantity(product.id, cart[product.id] + 1)
                       }
                     >
                       <Plus size={15} />
@@ -151,7 +114,7 @@ export default function CartPage() {
               <div className="empty-state">
                 <Heading>YOUR BAG IS QUIET.</Heading>
                 <p>
-                  Add something from the shop to begin an order request.
+                  Add something from the shop to begin an order.
                 </p>
                 <ButtonLink to="/shop">
                   Explore the shop
@@ -161,22 +124,23 @@ export default function CartPage() {
           </div>
 
           <aside className="order-summary">
-            <span>Order request summary</span>
+            <span>Order summary</span>
 
             <h2>GHS {total.toFixed(2)}</h2>
 
             <p>
-              Delivery, collection and payment details will be
-              confirmed directly by Gong Management.
+              Review your order total and proceed to the available payment
+              options. Delivery or collection arrangements can be confirmed
+              with Gong Management.
             </p>
 
             {items.length > 0 && !loading && (
               <Button
-                onClick={checkoutOnWhatsApp}
+                onClick={() => setPaymentOpen(true)}
                 className="w-full"
               >
-                <MessageCircle size={18} />
-                Checkout on WhatsApp
+                <CreditCard size={18} />
+                Proceed to payment
               </Button>
             )}
 
@@ -184,6 +148,15 @@ export default function CartPage() {
           </aside>
         </div>
       </section>
+
+      {paymentOpen && (
+        <PaymentModal
+          onClose={() => setPaymentOpen(false)}
+          purpose="shop"
+          amount={total}
+          orderItems={orderItems}
+        />
+      )}
     </>
   )
 }

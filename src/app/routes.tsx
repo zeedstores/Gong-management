@@ -10,15 +10,18 @@ import { CartProvider } from "../components/CartContext"
 import HomePage from "../pages/home/page"
 import AboutPage from "../pages/about/page"
 import ServicesPage from "../pages/services/page"
+import AdminServicesPage from "../pages/admin/services/page"
 import EventsPage from "../pages/events/page"
 import PortfolioPage from "../pages/portfolio/page"
 import ShopPage from "../pages/shop/page"
 import CartPage from "../pages/cart/page"
+import SponsorshipPage from "../pages/sponsorship/page"
 import EquipmentPage from "../pages/equipment/page"
 import PropertiesPage from "../pages/properties/page"
 import BookingPage from "../pages/booking/page"
 import ContactPage from "../pages/contact/page"
 import RegistrationPage from "../pages/registration/page"
+import AdminPropertiesPage from "../pages/admin/properties/page"
 
 import FoundationPage from "../pages/foundation/page"
 import FoundationNewsPage from "../pages/foundation/news/page"
@@ -101,6 +104,7 @@ export const router = createBrowserRouter([
       { path: "about", Component: AboutPage },
       { path: "services", Component: ServicesPage },
       { path: "events", Component: EventsPage },
+      { path: "sponsorship", Component: SponsorshipPage },
       { path: "events/:eventId/register", Component: RegistrationPage },
       { path: "portfolio", Component: PortfolioPage },
       { path: "shop", Component: ShopPage },
@@ -123,11 +127,13 @@ export const router = createBrowserRouter([
         children: [
           { index: true, Component: AdminOverviewPage },
           { path: "products", Component: AdminProductsPage },
+          { path: "services", Component: AdminServicesPage },
           { path: "events", Component: AdminEventsPage },
           { path: "orders", Component: AdminOrdersPage },
           { path: "equipment", Component: AdminEquipmentPage },
           { path: "team", Component: AdminTeamPage },
           { path: "enquiries", Component: AdminEnquiriesPage },
+          { path: "properties", Component: AdminPropertiesPage },
           { path: "settings", Component: AdminSettingsPage },
           { path: "portfolio", Component: AdminPortfolioPage },
 

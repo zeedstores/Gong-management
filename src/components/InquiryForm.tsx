@@ -1,5 +1,6 @@
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
+import { useSearchParams } from "react-router"
 import { CheckCircle2, Loader2 } from "lucide-react"
 import { Button, Field, Select, TextArea } from "./ui"
 import { supabase } from "../lib/supabase"
@@ -10,16 +11,59 @@ const enquiryTypeMap: Record<string, string> = {
   "Request Equipment Hire Quote": "general",
   "Event Ticket Registration": "general",
   "General enquiry": "general",
+  "Sponsorship Enquiry": "general",
 }
+
+const sponsorshipPackages = [
+  "Title Sponsor",
+  "Platinum Sponsor",
+  "Gold Sponsor",
+  "Silver Sponsor",
+  "Bronze Sponsor",
+  "Media / In-kind Partner",
+]
 
 export function InquiryForm({
   type = "General enquiry",
 }: {
   type?: string
 }) {
+  const [searchParams] = useSearchParams()
+
+  const requestedType = searchParams.get("type")
+  const requestedPackage = searchParams.get("package")
+
+  const isSponsorship = requestedType === "sponsorship"
+
+  const initialType = isSponsorship
+    ? "Sponsorship Enquiry"
+    : type
+
+  const [selectedType, setSelectedType] = useState(initialType)
+  const [selectedPackage, setSelectedPackage] = useState(
+    isSponsorship &&
+      requestedPackage &&
+      sponsorshipPackages.includes(requestedPackage)
+      ? requestedPackage
+      : "",
+  )
+
   const [sent, setSent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (isSponsorship) {
+      setSelectedType("Sponsorship Enquiry")
+
+      if (
+        requestedPackage &&
+        sponsorshipPackages.includes(requestedPackage)
+      ) {
+        setSelectedPackage(requestedPackage)
+      }
+    }
+  }, [isSponsorship, requestedPackage])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -27,10 +71,6 @@ export function InquiryForm({
 
     const form = event.currentTarget
     const formData = new FormData(form)
-
-    const selectedType = String(
-      formData.get("enquiry_type") || type,
-    )
 
     const enquiryType =
       enquiryTypeMap[selectedType] ?? "general"
@@ -64,7 +104,10 @@ export function InquiryForm({
     ).trim()
 
     const message = [
-      `Booking category: ${selectedType}`,
+      `Enquiry category: ${selectedType}`,
+      selectedPackage
+        ? `Sponsorship package: ${selectedPackage}`
+        : "",
       eventDate ? `Event date: ${eventDate}` : "",
       venue ? `Venue / location: ${venue}` : "",
       budget ? `Budget: GHS ${budget}` : "",
@@ -82,7 +125,9 @@ export function InquiryForm({
         customer_name: customerName,
         customer_email: customerEmail,
         customer_phone: customerPhone,
-        subject: selectedType,
+        subject: selectedPackage
+          ? `${selectedType} - ${selectedPackage}`
+          : selectedType,
         message,
       })
 
@@ -125,14 +170,33 @@ export function InquiryForm({
       <Select
         label="Enquiry type"
         name="enquiry_type"
-        defaultValue={type}
+        value={selectedType}
+        onChange={(value) => setSelectedType(value)}
       >
         <option>Book an Artist</option>
         <option>Book Event Production</option>
         <option>Request Equipment Hire Quote</option>
         <option>Event Ticket Registration</option>
         <option>General enquiry</option>
+        <option>Sponsorship Enquiry</option>
       </Select>
+
+      {selectedType === "Sponsorship Enquiry" && (
+        <Select
+          label="Sponsorship package"
+          name="sponsorship_package"
+          value={selectedPackage}
+          onChange={(value) => setSelectedPackage(value)}
+          required
+        >
+          <option value="">Select a package</option>
+          {sponsorshipPackages.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </Select>
+      )}
 
       <Field
         label="Full name"
@@ -179,7 +243,7 @@ export function InquiryForm({
         label="Tell us what you need"
         name="requirements"
         required
-        placeholder="Share the idea, audience size and any key requirements."
+        placeholder="Share your organisation, brand, goals and any additional requirements."
       />
 
       {error && (
