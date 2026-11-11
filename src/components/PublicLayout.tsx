@@ -2,15 +2,44 @@
 import { useEffect, useState } from "react"
 import { Link, NavLink, Outlet, useLocation } from "react-router"
 import { Menu, ShoppingBag, X } from "lucide-react"
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaYoutube,
+  FaTiktok,
+  FaLinkedinIn,
+  FaXTwitter,
+  FaWhatsapp,
+} from "react-icons/fa6"
 import { supabase } from "../lib/supabase"
 import { navItems } from "../data/mockData"
 import { useCart } from "./CartContext"
 import { ButtonLink } from "./ui"
-import { FaWhatsapp } from "react-icons/fa"
+
+type SocialLinks = {
+  instagram_url: string | null
+  facebook_url: string | null
+  youtube_url: string | null
+  tiktok_url: string | null
+  linkedin_url: string | null
+  x_url: string | null
+}
+
+const emptySocialLinks: SocialLinks = {
+  instagram_url: null,
+  facebook_url: null,
+  youtube_url: null,
+  tiktok_url: null,
+  linkedin_url: null,
+  x_url: null,
+}
 
 export default function PublicLayout() {
   const [open, setOpen] = useState(false)
   const [whatsapp, setWhatsapp] = useState("")
+  const [socialLinks, setSocialLinks] =
+    useState<SocialLinks>(emptySocialLinks)
+
   const location = useLocation()
   const { count } = useCart()
 
@@ -22,38 +51,91 @@ export default function PublicLayout() {
   useEffect(() => {
     let active = true
 
-    async function fetchWhatsApp() {
+    async function fetchSiteSettings() {
       const { data, error } = await supabase
         .from("site_settings")
-        .select("whatsapp_number")
+        .select(
+          "whatsapp_number, instagram_url, facebook_url, youtube_url, tiktok_url, linkedin_url, x_url"
+        )
         .eq("id", true)
         .single()
 
       if (!active) return
 
       if (error) {
-        console.error("WhatsApp settings error:", error.message)
+        console.error("Site settings error:", error.message)
         return
       }
 
       setWhatsapp(data?.whatsapp_number ?? "")
+
+      setSocialLinks({
+        instagram_url: data?.instagram_url ?? null,
+        facebook_url: data?.facebook_url ?? null,
+        youtube_url: data?.youtube_url ?? null,
+        tiktok_url: data?.tiktok_url ?? null,
+        linkedin_url: data?.linkedin_url ?? null,
+        x_url: data?.x_url ?? null,
+      })
     }
 
-    fetchWhatsApp()
+    fetchSiteSettings()
 
     return () => {
       active = false
     }
   }, [])
 
-  const whatsappLink = whatsapp.replace(/\D/g, "")
-    ? `https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
-        "Hello Gong Management, I would like to make an enquiry.",
+  const whatsappNumber = whatsapp.replace(/\D/g, "")
+
+  const whatsappLink = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+        "Hello Gong Management, I would like to make an enquiry."
       )}`
     : ""
 
+  const socialItems = [
+    {
+      name: "Instagram",
+      url: socialLinks.instagram_url,
+      Icon: FaInstagram,
+      color: "#E4405F",
+    },
+    {
+      name: "Facebook",
+      url: socialLinks.facebook_url,
+      Icon: FaFacebookF,
+      color: "#1877F2",
+    },
+    {
+      name: "YouTube",
+      url: socialLinks.youtube_url,
+      Icon: FaYoutube,
+      color: "#FF0000",
+    },
+    {
+      name: "TikTok",
+      url: socialLinks.tiktok_url,
+      Icon: FaTiktok,
+      color: "#25F4EE",
+    },
+    {
+      name: "LinkedIn",
+      url: socialLinks.linkedin_url,
+      Icon: FaLinkedinIn,
+      color: "#0A66C2",
+    },
+    {
+      name: "X",
+      url: socialLinks.x_url,
+      Icon: FaXTwitter,
+      color: "#FFFFFF",
+    },
+  ].filter((item) => item.url?.trim())
+
   return (
     <div className="site">
+      {/* HEADER */}
       <header className="header">
         <Link className="brand" to="/">
           <img src="/assets/gong-logo.png" alt="Gong Management" />
@@ -100,6 +182,7 @@ export default function PublicLayout() {
         </button>
       </header>
 
+      {/* PAGE CONTENT */}
       <main>
         <Outlet />
       </main>
@@ -121,22 +204,47 @@ export default function PublicLayout() {
         </a>
       )}
 
+      {/* FOOTER */}
       <footer className="footer">
         <div className="shell footer-grid">
+          {/* BRAND */}
           <div>
-            <img src="/assets/gong-logo.png" alt="" />
+            <img src="/assets/gong-logo.png" alt="Gong Management" />
+
             <p className="footer-mark">
               WHERE SOUND
               <br />
               BECOMES POWER.
             </p>
+
             <p className="muted">
               Tema, Ghana · Contact details pending client confirmation.
             </p>
+
+            {/* SOCIAL MEDIA ICONS */}
+            {socialItems.length > 0 && (
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {socialItems.map(({ name, url, Icon, color }) => (
+                  <a
+                    key={name}
+                    href={url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit Gong Managements on ${name}`}
+                    title={name}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 transition duration-300 hover:-translate-y-1 hover:border-white/40 hover:bg-white/10"
+                  >
+                    <Icon size={18} style={{ color }} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* EXPLORE */}
           <div>
             <h3>Explore</h3>
+
             {navItems.map(([label, path]) => (
               <Link key={path} to={path}>
                 {label}
@@ -144,6 +252,7 @@ export default function PublicLayout() {
             ))}
           </div>
 
+          {/* WORK WITH US */}
           <div>
             <h3>Work with us</h3>
             <Link to="/booking">Booking</Link>
@@ -152,14 +261,34 @@ export default function PublicLayout() {
             <Link to="/admin/login">Admin portal</Link>
           </div>
 
+          {/* CONNECT */}
           <div>
             <h3>Connect</h3>
-            <span>Instagram · Link pending</span>
-            <span>Facebook · Link pending</span>
-            <span>YouTube · Link pending</span>
+
+            {socialItems.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {socialItems.map(({ name, url, Icon, color }) => (
+                  <a
+                    key={name}
+                    href={url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 text-sm text-white/70 transition hover:text-white"
+                  >
+                    <Icon size={17} style={{ color }} />
+                    {name}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <span className="text-sm text-white/50">
+                Social links coming soon.
+              </span>
+            )}
           </div>
         </div>
 
+        {/* FOOTER BOTTOM */}
         <div className="shell footer-bottom">
           <span>© 2026 Gong Management. Where Sound Becomes Power.</span>
           <span>Privacy · Terms</span>

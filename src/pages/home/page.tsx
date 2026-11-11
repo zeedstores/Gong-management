@@ -8,6 +8,14 @@ import {
   Megaphone,
   Users,
 } from "lucide-react"
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaYoutube,
+  FaTiktok,
+  FaLinkedinIn,
+  FaXTwitter,
+} from "react-icons/fa6"
 import { Link } from "react-router"
 import { supabase } from "../../lib/supabase"
 import { ButtonLink, Eyebrow, Heading, Status } from "../../components/ui"
@@ -92,6 +100,15 @@ type BlogPost = {
   category: string | null
 }
 
+type SocialLinks = {
+  instagram_url: string | null
+  facebook_url: string | null
+  youtube_url: string | null
+  tiktok_url: string | null
+  linkedin_url: string | null
+  x_url: string | null
+}
+
 type HomeData = {
   services: Service[]
   events: Event[]
@@ -116,6 +133,15 @@ const emptyHomeData: HomeData = {
   blogPosts: [],
 }
 
+const emptySocialLinks: SocialLinks = {
+  instagram_url: null,
+  facebook_url: null,
+  youtube_url: null,
+  tiktok_url: null,
+  linkedin_url: null,
+  x_url: null,
+}
+
 function formatDate(date: string | null) {
   if (!date) return ""
 
@@ -128,6 +154,8 @@ function formatDate(date: string | null) {
 
 export default function HomePage() {
   const [data, setData] = useState<HomeData>(emptyHomeData)
+  const [socialLinks, setSocialLinks] =
+    useState<SocialLinks>(emptySocialLinks)
   const [paymentOpen, setPaymentOpen] = useState(false)
 
   useEffect(() => {
@@ -144,6 +172,7 @@ export default function HomePage() {
         campaignsResult,
         teamResult,
         blogResult,
+        socialResult,
       ] = await Promise.all([
         supabase
           .from("services")
@@ -169,7 +198,7 @@ export default function HomePage() {
           .from("equipment")
           .select("id, name, category, description, image_url")
           .eq("is_published", true)
-          .limit(8),
+          .limit(12),
 
         supabase
           .from("properties")
@@ -203,6 +232,14 @@ export default function HomePage() {
           .eq("status", "published")
           .order("published_at", { ascending: false, nullsFirst: false })
           .limit(8),
+
+        supabase
+          .from("site_settings")
+          .select(
+            "instagram_url, facebook_url, youtube_url, tiktok_url, linkedin_url, x_url"
+          )
+          .eq("id", true)
+          .single(),
       ])
 
       const results = [
@@ -215,6 +252,7 @@ export default function HomePage() {
         ["foundation campaigns", campaignsResult.error],
         ["team members", teamResult.error],
         ["blog posts", blogResult.error],
+        ["social settings", socialResult.error],
       ] as const
 
       results.forEach(([table, error]) => {
@@ -236,6 +274,8 @@ export default function HomePage() {
         team: teamResult.data ?? [],
         blogPosts: blogResult.data ?? [],
       })
+
+      setSocialLinks(socialResult.data ?? emptySocialLinks)
     }
 
     loadHomepage()
@@ -244,6 +284,39 @@ export default function HomePage() {
       active = false
     }
   }, [])
+
+  const socialItems = [
+    {
+      name: "Instagram",
+      url: socialLinks.instagram_url,
+      Icon: FaInstagram,
+    },
+    {
+      name: "Facebook",
+      url: socialLinks.facebook_url,
+      Icon: FaFacebookF,
+    },
+    {
+      name: "YouTube",
+      url: socialLinks.youtube_url,
+      Icon: FaYoutube,
+    },
+    {
+      name: "TikTok",
+      url: socialLinks.tiktok_url,
+      Icon: FaTiktok,
+    },
+    {
+      name: "LinkedIn",
+      url: socialLinks.linkedin_url,
+      Icon: FaLinkedinIn,
+    },
+    {
+      name: "X",
+      url: socialLinks.x_url,
+      Icon: FaXTwitter,
+    },
+  ].filter((item) => item.url?.trim())
 
   return (
     <>
@@ -341,9 +414,9 @@ export default function HomePage() {
         </div>
       </section>
 
-     {/* SERVICES */}
-{data.services.length > 0 && (
-  <section className="section dark-section home-services-section">
+      {/* SERVICES */}
+      {data.services.length > 0 && (
+        <section className="section dark-section home-services-section">
           <div className="shell section-heading">
             <div>
               <Eyebrow>What we do</Eyebrow>
@@ -827,10 +900,7 @@ export default function HomePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="border border-white/15 bg-white/5 p-6">
-                <Megaphone
-                  size={30}
-                  className="text-[#d6aa33]"
-                />
+                <Megaphone size={30} className="text-[#d6aa33]" />
                 <h3 className="mt-5 text-lg font-bold text-white">
                   Brand visibility
                 </h3>
@@ -841,10 +911,7 @@ export default function HomePage() {
               </div>
 
               <div className="border border-white/15 bg-white/5 p-6">
-                <Users
-                  size={30}
-                  className="text-[#d6aa33]"
-                />
+                <Users size={30} className="text-[#d6aa33]" />
                 <h3 className="mt-5 text-lg font-bold text-white">
                   Audience access
                 </h3>
@@ -855,10 +922,7 @@ export default function HomePage() {
               </div>
 
               <div className="border border-white/15 bg-white/5 p-6 sm:col-span-2">
-                <Handshake
-                  size={30}
-                  className="text-[#d6aa33]"
-                />
+                <Handshake size={30} className="text-[#d6aa33]" />
                 <h3 className="mt-5 text-lg font-bold text-white">
                   Strategic partnerships
                 </h3>
@@ -1035,6 +1099,25 @@ export default function HomePage() {
               Contact us
             </ButtonLink>
           </div>
+
+          {/* SOCIAL MEDIA */}
+          {socialItems.length > 0 && (
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              {socialItems.map(({ name, url, Icon }) => (
+                <a
+                  key={name}
+                  href={url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Visit Gong Managements on ${name}`}
+                  title={name}
+                  className="flex h-11 w-11 items-center justify-center border border-white/20 text-white transition hover:border-[#d6aa33] hover:bg-[#d6aa33] hover:text-[#090909]"
+                >
+                  <Icon size={19} />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

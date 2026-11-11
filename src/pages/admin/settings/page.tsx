@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Globe,
   Banknote,
+  Share2,
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { Button, Field, TextArea } from "../../../components/ui"
@@ -20,6 +21,11 @@ type SiteSettings = {
   whatsapp_number: string
   location: string
   instagram_url: string
+  facebook_url: string
+  youtube_url: string
+  tiktok_url: string
+  linkedin_url: string
+  x_url: string
 }
 
 type PaymentSettings = {
@@ -39,6 +45,11 @@ const defaultSiteSettings: SiteSettings = {
   whatsapp_number: "",
   location: "Tema, Greater Accra, Ghana",
   instagram_url: "",
+  facebook_url: "",
+  youtube_url: "",
+  tiktok_url: "",
+  linkedin_url: "",
+  x_url: "",
 }
 
 const defaultPaymentSettings: PaymentSettings = {
@@ -97,31 +108,26 @@ export default function AdminSettingsPage() {
       if (paymentResult.error) throw paymentResult.error
 
       setSiteSettings({
-        business_name:
-          siteResult.data.business_name || "",
+        business_name: siteResult.data.business_name || "",
         email: siteResult.data.email || "",
-        whatsapp_number:
-          siteResult.data.whatsapp_number || "",
+        whatsapp_number: siteResult.data.whatsapp_number || "",
         location: siteResult.data.location || "",
-        instagram_url:
-          siteResult.data.instagram_url || "",
+        instagram_url: siteResult.data.instagram_url || "",
+        facebook_url: siteResult.data.facebook_url || "",
+        youtube_url: siteResult.data.youtube_url || "",
+        tiktok_url: siteResult.data.tiktok_url || "",
+        linkedin_url: siteResult.data.linkedin_url || "",
+        x_url: siteResult.data.x_url || "",
       })
 
       setPaymentSettings({
-        account_name:
-          paymentResult.data.account_name || "",
-        bank_name:
-          paymentResult.data.bank_name || "",
-        account_ghs:
-          paymentResult.data.account_ghs || "",
-        account_usd:
-          paymentResult.data.account_usd || "",
-        account_gbp:
-          paymentResult.data.account_gbp || "",
-        account_eur:
-          paymentResult.data.account_eur || "",
-        paystack_url:
-          paymentResult.data.paystack_url || "",
+        account_name: paymentResult.data.account_name || "",
+        bank_name: paymentResult.data.bank_name || "",
+        account_ghs: paymentResult.data.account_ghs || "",
+        account_usd: paymentResult.data.account_usd || "",
+        account_gbp: paymentResult.data.account_gbp || "",
+        account_eur: paymentResult.data.account_eur || "",
+        paystack_url: paymentResult.data.paystack_url || "",
         payment_instructions:
           paymentResult.data.payment_instructions || "",
       })
@@ -187,16 +193,25 @@ export default function AdminSettingsPage() {
         supabase
           .from("site_settings")
           .update({
-            business_name:
-              siteSettings.business_name.trim(),
-            email:
-              siteSettings.email.trim() || null,
+            business_name: siteSettings.business_name.trim(),
+            email: siteSettings.email.trim() || null,
             whatsapp_number:
               siteSettings.whatsapp_number.trim() || null,
-            location:
-              siteSettings.location.trim() || null,
+            location: siteSettings.location.trim() || null,
+
             instagram_url:
               siteSettings.instagram_url.trim() || null,
+            facebook_url:
+              siteSettings.facebook_url.trim() || null,
+            youtube_url:
+              siteSettings.youtube_url.trim() || null,
+            tiktok_url:
+              siteSettings.tiktok_url.trim() || null,
+            linkedin_url:
+              siteSettings.linkedin_url.trim() || null,
+            x_url:
+              siteSettings.x_url.trim() || null,
+
             updated_at: new Date().toISOString(),
           })
           .eq("id", true),
@@ -263,7 +278,8 @@ export default function AdminSettingsPage() {
           <span>Configuration</span>
           <h1>SITE SETTINGS</h1>
           <p>
-            Manage business information and customer payment instructions.
+            Manage business information, social media and customer
+            payment instructions.
           </p>
         </div>
 
@@ -296,10 +312,7 @@ export default function AdminSettingsPage() {
         <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
             <div className="bg-[#d6aa33]/10 p-3">
-              <Building2
-                size={21}
-                className="text-[#d6aa33]"
-              />
+              <Building2 size={21} className="text-[#d6aa33]" />
             </div>
 
             <div>
@@ -348,7 +361,27 @@ export default function AdminSettingsPage() {
                 updateSite("location", e.target.value)
               }
             />
+          </div>
+        </section>
 
+        {/* SOCIAL MEDIA */}
+        <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
+          <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+            <div className="bg-[#d6aa33]/10 p-3">
+              <Share2 size={21} className="text-[#d6aa33]" />
+            </div>
+
+            <div>
+              <h2 className="text-base font-semibold text-white">
+                Social media links
+              </h2>
+              <p className="mt-1 text-xs text-white/40">
+                Add your official social media profile URLs.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
             <Field
               label="Instagram URL"
               value={siteSettings.instagram_url}
@@ -357,17 +390,65 @@ export default function AdminSettingsPage() {
                 updateSite("instagram_url", e.target.value)
               }
             />
+
+            <Field
+              label="Facebook URL"
+              value={siteSettings.facebook_url}
+              placeholder="https://facebook.com/..."
+              onChange={(e) =>
+                updateSite("facebook_url", e.target.value)
+              }
+            />
+
+            <Field
+              label="YouTube URL"
+              value={siteSettings.youtube_url}
+              placeholder="https://youtube.com/@..."
+              onChange={(e) =>
+                updateSite("youtube_url", e.target.value)
+              }
+            />
+
+            <Field
+              label="TikTok URL"
+              value={siteSettings.tiktok_url}
+              placeholder="https://tiktok.com/@..."
+              onChange={(e) =>
+                updateSite("tiktok_url", e.target.value)
+              }
+            />
+
+            <Field
+              label="LinkedIn URL"
+              value={siteSettings.linkedin_url}
+              placeholder="https://linkedin.com/company/..."
+              onChange={(e) =>
+                updateSite("linkedin_url", e.target.value)
+              }
+            />
+
+            <Field
+              label="X (Twitter) URL"
+              value={siteSettings.x_url}
+              placeholder="https://x.com/..."
+              onChange={(e) =>
+                updateSite("x_url", e.target.value)
+              }
+            />
           </div>
+
+          <p className="text-xs leading-5 text-white/40">
+            Leave any platform empty if Gong Management does not have
+            an account on that platform. Empty links will not appear
+            on the public website.
+          </p>
         </section>
 
         {/* BANK DETAILS */}
         <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
             <div className="bg-[#d6aa33]/10 p-3">
-              <CreditCard
-                size={21}
-                className="text-[#d6aa33]"
-              />
+              <CreditCard size={21} className="text-[#d6aa33]" />
             </div>
 
             <div>
@@ -402,10 +483,7 @@ export default function AdminSettingsPage() {
 
           <div className="border-t border-white/10 pt-5">
             <div className="mb-4 flex items-center gap-2">
-              <Banknote
-                size={18}
-                className="text-[#d6aa33]"
-              />
+              <Banknote size={18} className="text-[#d6aa33]" />
               <h3 className="text-sm font-semibold text-white">
                 Currency accounts
               </h3>
@@ -450,7 +528,8 @@ export default function AdminSettingsPage() {
             </div>
 
             <p className="mt-4 text-xs text-white/40">
-              Leave an account field empty if the banking details have not yet been provided.
+              Leave an account field empty if the banking details have
+              not yet been provided.
             </p>
           </div>
         </section>
@@ -459,10 +538,7 @@ export default function AdminSettingsPage() {
         <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
             <div className="bg-[#d6aa33]/10 p-3">
-              <Globe
-                size={21}
-                className="text-[#d6aa33]"
-              />
+              <Globe size={21} className="text-[#d6aa33]" />
             </div>
 
             <div>
@@ -500,10 +576,7 @@ export default function AdminSettingsPage() {
         <section className="admin-panel space-y-5 !bg-[#151515] !text-[#f3f0e8]">
           <div className="flex items-center gap-3 border-b border-white/10 pb-4">
             <div className="bg-[#d6aa33]/10 p-3">
-              <ShieldCheck
-                size={21}
-                className="text-[#d6aa33]"
-              />
+              <ShieldCheck size={21} className="text-[#d6aa33]" />
             </div>
 
             <div>
@@ -521,10 +594,7 @@ export default function AdminSettingsPage() {
             value={paymentSettings.payment_instructions}
             placeholder="Explain how customers should make payments and submit proof of payment."
             onChange={(e) =>
-              updatePayment(
-                "payment_instructions",
-                e.target.value,
-              )
+              updatePayment("payment_instructions", e.target.value)
             }
           />
 
@@ -534,7 +604,9 @@ export default function AdminSettingsPage() {
               className="mt-0.5 shrink-0 text-[#d6aa33]"
             />
             <p className="text-xs leading-5 text-white/50">
-              Confirm all banking information before making it available to customers. Payment settings are managed separately from public business contact information.
+              Confirm all banking information before making it
+              available to customers. Payment settings are managed
+              separately from public business contact information.
             </p>
           </div>
         </section>
@@ -548,10 +620,7 @@ export default function AdminSettingsPage() {
           <Button type="submit" disabled={saving}>
             {saving ? (
               <>
-                <Loader2
-                  size={16}
-                  className="animate-spin"
-                />
+                <Loader2 size={16} className="animate-spin" />
                 Saving...
               </>
             ) : (

@@ -9,6 +9,7 @@ import { CartProvider } from "../components/CartContext"
 
 import HomePage from "../pages/home/page"
 import AboutPage from "../pages/about/page"
+import CheckoutPage from "../pages/checkout/page"
 import ServicesPage from "../pages/services/page"
 import AdminServicesPage from "../pages/admin/services/page"
 import EventsPage from "../pages/events/page"
@@ -108,6 +109,7 @@ export const router = createBrowserRouter([
       { path: "events/:eventId/register", Component: RegistrationPage },
       { path: "portfolio", Component: PortfolioPage },
       { path: "shop", Component: ShopPage },
+      { path: "checkout/:productId", Component: CheckoutPage },
       { path: "foundation", Component: FoundationPage },
       { path: "foundation/news/:slug", Component: FoundationNewsPage },
       { path: "cart", Component: CartPage },
@@ -136,7 +138,6 @@ export const router = createBrowserRouter([
           { path: "properties", Component: AdminPropertiesPage },
           { path: "settings", Component: AdminSettingsPage },
           { path: "portfolio", Component: AdminPortfolioPage },
-
           { path: "foundation-news", Component: AdminFoundationNewsPage },
           { path: "foundation-events", Component: AdminFoundationEventsPage },
           { path: "foundation-campaigns", Component: AdminFoundationCampaignsPage },

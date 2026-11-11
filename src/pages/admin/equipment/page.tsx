@@ -111,7 +111,6 @@ export default function AdminEquipmentPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState("")
 
-  // Load equipment and quote requests
   async function loadData() {
     setLoading(true)
     setError("")
@@ -147,7 +146,6 @@ export default function AdminEquipmentPage() {
     loadData()
   }, [])
 
-  // Generate a temporary preview for a selected image
   useEffect(() => {
     if (!selectedImage) {
       setImagePreview("")
@@ -160,7 +158,6 @@ export default function AdminEquipmentPage() {
     return () => URL.revokeObjectURL(previewUrl)
   }, [selectedImage])
 
-  // Upload image to Supabase Storage
   async function uploadEquipmentImage(file: File): Promise<UploadedImage> {
     const extension = file.name.split(".").pop()?.toLowerCase() || "jpg"
     const filePath = `${crypto.randomUUID()}.${extension}`
@@ -185,7 +182,6 @@ export default function AdminEquipmentPage() {
     }
   }
 
-  // Delete image from Supabase Storage
   async function removeEquipmentImage(path: string) {
     const { error } = await supabase.storage
       .from("equipment-images")
@@ -199,7 +195,6 @@ export default function AdminEquipmentPage() {
     return true
   }
 
-  // Open add form
   function openAddForm() {
     setEditing(null)
     setForm(emptyForm)
@@ -209,17 +204,16 @@ export default function AdminEquipmentPage() {
     setSuccess("")
   }
 
-  // Open edit form
   function openEditForm(item: Equipment) {
     setEditing(item)
     setSelectedImage(null)
 
     setForm({
-      name: item.name,
-      category: item.category,
+      name: item.name || "",
+      category: item.category || "",
       description: item.description || "",
-      rental_rate: String(item.rental_rate),
-      rate_unit: item.rate_unit,
+      rental_rate: String(item.rental_rate ?? ""),
+      rate_unit: item.rate_unit || "day",
       image_url: item.image_url || "",
       availability: item.availability,
       is_published: item.is_published,
@@ -230,23 +224,9 @@ export default function AdminEquipmentPage() {
     setSuccess("")
   }
 
-  // Save equipment and its image
+  // All equipment form fields are optional.
   async function saveEquipment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
-    if (!form.name.trim() || !form.category.trim()) {
-      setError("Equipment name and category are required.")
-      return
-    }
-
-    if (
-      !form.rental_rate.trim() ||
-      !Number.isFinite(Number(form.rental_rate)) ||
-      Number(form.rental_rate) < 0
-    ) {
-      setError("Please enter a valid rental rate.")
-      return
-    }
 
     setSaving(true)
     setError("")
@@ -255,17 +235,21 @@ export default function AdminEquipmentPage() {
     let uploadedImage: UploadedImage | null = null
 
     try {
-      // Upload newly selected image
       if (selectedImage) {
         uploadedImage = await uploadEquipmentImage(selectedImage)
       }
+
+      const rentalRate =
+        form.rental_rate.trim() === ""
+          ? 0
+          : Number(form.rental_rate)
 
       const payload = {
         name: form.name.trim(),
         category: form.category.trim(),
         description: form.description.trim() || null,
-        rental_rate: Number(form.rental_rate),
-        rate_unit: form.rate_unit,
+        rental_rate: rentalRate,
+        rate_unit: form.rate_unit || "day",
 
         image_url:
           uploadedImage?.image_url ?? editing?.image_url ?? null,
@@ -286,7 +270,6 @@ export default function AdminEquipmentPage() {
         : await supabase.from("equipment").insert(payload)
 
       if (result.error) {
-        // Remove newly uploaded image if database save fails
         if (uploadedImage) {
           await removeEquipmentImage(uploadedImage.image_path)
         }
@@ -294,12 +277,7 @@ export default function AdminEquipmentPage() {
         throw result.error
       }
 
-      // Remove old image only after successful database update
-      if (
-        editing &&
-        uploadedImage &&
-        editing.image_path
-      ) {
+      if (editing && uploadedImage && editing.image_path) {
         await removeEquipmentImage(editing.image_path)
       }
 
@@ -326,7 +304,6 @@ export default function AdminEquipmentPage() {
     }
   }
 
-  // Publish or unpublish equipment
   async function togglePublished(item: Equipment) {
     setError("")
 
@@ -356,7 +333,6 @@ export default function AdminEquipmentPage() {
     setSuccess(newValue ? "Equipment published." : "Equipment unpublished.")
   }
 
-  // Update equipment availability
   async function updateAvailability(
     item: Equipment,
     availability: Equipment["availability"]
@@ -383,10 +359,9 @@ export default function AdminEquipmentPage() {
     )
   }
 
-  // Delete equipment and associated image
   async function deleteEquipment(item: Equipment) {
     const confirmed = window.confirm(
-      `Delete "${item.name}"? This action cannot be undone.`
+      `Delete "${item.name || "this equipment"}"? This action cannot be undone.`
     )
 
     if (!confirmed) return
@@ -423,7 +398,6 @@ export default function AdminEquipmentPage() {
     }
   }
 
-  // Update quote request status
   async function updateQuoteStatus(
     request: QuoteRequest,
     status: QuoteRequest["status"]
@@ -461,8 +435,6 @@ export default function AdminEquipmentPage() {
 
   return (
     <main className="min-h-screen bg-[#f3f0e8] p-4 text-[#090909] sm:p-6 lg:p-8">
-
-      {/* Page heading */}
       <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a690f]">
@@ -484,7 +456,6 @@ export default function AdminEquipmentPage() {
         </button>
       </div>
 
-      {/* Notifications */}
       {error && (
         <div className="mb-5 flex items-start justify-between gap-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <span>{error}</span>
@@ -505,7 +476,6 @@ export default function AdminEquipmentPage() {
         </div>
       )}
 
-      {/* Tabs */}
       <div className="mb-7 flex flex-wrap border-b border-[#d8d3c8]">
         <button
           onClick={() => setActiveTab("equipment")}
@@ -538,7 +508,6 @@ export default function AdminEquipmentPage() {
         </button>
       </div>
 
-      {/* Equipment tab */}
       {activeTab === "equipment" && (
         <section>
           <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -602,7 +571,7 @@ export default function AdminEquipmentPage() {
                   {item.image_url ? (
                     <img
                       src={item.image_url}
-                      alt={item.name}
+                      alt={item.name || "Equipment"}
                       className="h-48 w-full object-cover"
                     />
                   ) : (
@@ -614,7 +583,7 @@ export default function AdminEquipmentPage() {
                   <div className="p-5">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#8a690f]">
-                        {item.category}
+                        {item.category || "Uncategorised"}
                       </span>
 
                       <span
@@ -629,7 +598,7 @@ export default function AdminEquipmentPage() {
                     </div>
 
                     <h3 className="mt-4 font-['Anton'] text-2xl font-normal uppercase">
-                      {item.name}
+                      {item.name || "Unnamed equipment"}
                     </h3>
 
                     <p className="mt-2 min-h-10 text-xs leading-relaxed text-[#77746d]">
@@ -685,7 +654,7 @@ export default function AdminEquipmentPage() {
                       <button
                         onClick={() => deleteEquipment(item)}
                         className="flex h-10 w-10 items-center justify-center border border-[#ead1d1] text-red-600 transition hover:bg-red-50"
-                        aria-label={`Delete ${item.name}`}
+                        aria-label={`Delete ${item.name || "equipment"}`}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -698,7 +667,6 @@ export default function AdminEquipmentPage() {
         </section>
       )}
 
-      {/* Quote requests tab */}
       {activeTab === "requests" && (
         <section className="border border-[#e0dcd2] bg-white p-4 sm:p-6">
           <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -846,7 +814,6 @@ export default function AdminEquipmentPage() {
         </section>
       )}
 
-      {/* Add / edit equipment modal */}
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-3 sm:p-6"
@@ -879,14 +846,14 @@ export default function AdminEquipmentPage() {
             </div>
 
             <form
+              noValidate
               onSubmit={saveEquipment}
               className="max-h-[75vh] space-y-5 overflow-y-auto px-5 py-6 sm:px-7"
             >
               <label className={labelClass}>
-                Equipment name *
+                Equipment name (optional)
 
                 <input
-                  required
                   value={form.name}
                   onChange={(event) =>
                     setForm({ ...form, name: event.target.value })
@@ -897,10 +864,9 @@ export default function AdminEquipmentPage() {
               </label>
 
               <label className={labelClass}>
-                Category *
+                Category (optional)
 
                 <input
-                  required
                   value={form.category}
                   onChange={(event) =>
                     setForm({ ...form, category: event.target.value })
@@ -911,7 +877,7 @@ export default function AdminEquipmentPage() {
               </label>
 
               <label className={labelClass}>
-                Description
+                Description (optional)
 
                 <textarea
                   rows={3}
@@ -926,10 +892,9 @@ export default function AdminEquipmentPage() {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className={labelClass}>
-                  Rental rate (₦) *
+                  Rental rate (₦) (optional)
 
                   <input
-                    required
                     type="number"
                     min="0"
                     step="0.01"
@@ -961,10 +926,9 @@ export default function AdminEquipmentPage() {
                 </label>
               </div>
 
-              {/* Image upload */}
               <div className="flex flex-col gap-3">
                 <span className="text-xs font-semibold text-[#333]">
-                  Equipment image
+                  Equipment image (optional)
                 </span>
 
                 {(imagePreview || form.image_url) && (
@@ -1103,4 +1067,3 @@ export default function AdminEquipmentPage() {
     </main>
   )
 }
-
