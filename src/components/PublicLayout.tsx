@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react"
 import { Link, NavLink, Outlet, useLocation } from "react-router"
-import { Menu, ShoppingBag, X } from "lucide-react"
+import { Menu, ShoppingBag, X, MapPin, Phone } from "lucide-react"
 import {
   FaFacebookF,
   FaInstagram,
@@ -197,7 +197,6 @@ export default function PublicLayout() {
           className="fixed bottom-6 right-4 z-[9999] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition-transform duration-300 hover:scale-110 sm:bottom-6 sm:right-6 sm:h-auto sm:w-auto sm:gap-3 sm:px-5 sm:py-4"
         >
           <FaWhatsapp size={30} />
-
           <span className="hidden text-sm font-bold sm:inline">
             Chat with us
           </span>
@@ -218,10 +217,9 @@ export default function PublicLayout() {
             </p>
 
             <p className="muted">
-              Tema, Ghana · Contact details pending client confirmation.
+              Professional management and production services.
             </p>
 
-            {/* SOCIAL MEDIA ICONS */}
             {socialItems.length > 0 && (
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 {socialItems.map(({ name, url, Icon, color }) => (
@@ -244,7 +242,6 @@ export default function PublicLayout() {
           {/* EXPLORE */}
           <div>
             <h3>Explore</h3>
-
             {navItems.map(([label, path]) => (
               <Link key={path} to={path}>
                 {label}
@@ -261,36 +258,41 @@ export default function PublicLayout() {
             <Link to="/admin/login">Admin portal</Link>
           </div>
 
-          {/* CONNECT */}
+          {/* OFFICE & CONTACT */}
           <div>
-            <h3>Connect</h3>
+            <h3>Office & Contact</h3>
 
-            {socialItems.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {socialItems.map(({ name, url, Icon, color }) => (
-                  <a
-                    key={name}
-                    href={url!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 text-sm text-white/70 transition hover:text-white"
-                  >
-                    <Icon size={17} style={{ color }} />
-                    {name}
-                  </a>
-                ))}
+            <div className="mb-5 flex items-start gap-3 text-sm text-white/70">
+              <MapPin size={18} className="mt-1 shrink-0 text-[#d6aa33]" />
+              <div>
+                <p className="font-semibold text-white">
+                  Gong Managements
+                </p>
+                <p>P. O. Box CO 437</p>
+                <p>Tema, Ghana</p>
+                <p className="mt-2">
+                  GPS Address: GT-106-9742
+                </p>
               </div>
-            ) : (
-              <span className="text-sm text-white/50">
-                Social links coming soon.
-              </span>
-            )}
+            </div>
+
+            <div className="flex items-start gap-3 text-sm text-white/70">
+              <Phone size={18} className="mt-1 shrink-0 text-[#d6aa33]" />
+              <div className="flex flex-col gap-2">
+                <a href="tel:+233243728969" className="hover:text-white">
+                  +233 243728969
+                </a>
+                <a href="tel:+233277810803" className="hover:text-white">
+                  +233 0277810803
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* FOOTER BOTTOM */}
         <div className="shell footer-bottom">
-          <span>© 2026 Gong Management. Where Sound Becomes Power.</span>
+          <span>© 2026 Gong Managements. Where Sound Becomes Power.</span>
           <span>Privacy · Terms</span>
         </div>
       </footer>
