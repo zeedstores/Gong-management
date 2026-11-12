@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { MapPin, MessageCircle } from "lucide-react"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 import { ButtonLink, Eyebrow, PageHero } from "../../components/ui"
 import PaymentModal from "../../components/PaymentModal"
 
@@ -16,6 +17,8 @@ type Property = {
   status: string
 }
 
+const CACHE_TIME = 60 * 60 * 1000
+
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([])
   const [type, setType] = useState("All")
@@ -28,33 +31,67 @@ export default function PropertiesPage() {
     let active = true
 
     const fetchProperties = async () => {
-      const [{ data, error }, settingsResult] = await Promise.all([
-        supabase
-          .from("properties")
-          .select("id, title, type, location, description, image_url, price, status")
-          .eq("is_published", true)
-          .order("created_at", { ascending: false }),
+      try {
+        const data = await cachedFetch(
+          "properties",
+          async () => {
+            const { data, error } = await supabase
+              .from("properties")
+              .select(
+                "id, title, type, location, description, image_url, price, status"
+              )
+              .eq("is_published", true)
+              .order("created_at", { ascending: false })
 
-        supabase
-          .from("site_settings")
-          .select("whatsapp_number")
-          .eq("id", true)
-          .single(),
-      ])
+            if (error) throw error
 
-      if (!active) return
+            return data ?? []
+          },
+          CACHE_TIME,
+        )
 
-      if (error) {
+        if (!active) return
+
+        setProperties(data as Property[])
+        setError("")
+      } catch (error) {
+        if (!active) return
+
+        console.error("Unable to load properties:", error)
         setError("Unable to load property listings. Please try again.")
-      } else {
-        setProperties(data ?? [])
+      } finally {
+        if (active) setLoading(false)
       }
+    }
 
-      setWhatsapp(settingsResult.data?.whatsapp_number ?? "")
-      setLoading(false)
+    const fetchSettings = async () => {
+      try {
+        const data = await cachedFetch(
+          "properties-page-settings",
+          async () => {
+            const { data, error } = await supabase
+              .from("site_settings")
+              .select("whatsapp_number")
+              .eq("id", true)
+              .single()
+
+            if (error) throw error
+
+            return data
+          },
+          CACHE_TIME,
+        )
+
+        if (active) {
+          setWhatsapp(data?.whatsapp_number ?? "")
+        }
+      } catch (error) {
+        console.error("Unable to load property page settings:", error)
+      }
     }
 
     fetchProperties()
+    fetchSettings()
 
     return () => {
       active = false

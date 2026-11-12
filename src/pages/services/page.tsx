@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react"
-import { Check } from "lucide-react"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 import { ButtonLink, Eyebrow, Heading, PageHero } from "../../components/ui"
 
 type Service = {
@@ -11,6 +11,8 @@ type Service = {
   description: string | null
   image_url: string | null
 }
+
+const CACHE_TIME = 60 * 60 * 1000
 
 const packages = [
   {
@@ -49,23 +51,35 @@ export default function ServicesPage() {
       setLoading(true)
       setError(false)
 
-      const { data, error } = await supabase
-        .from("services")
-        .select("id, title, slug, description, image_url")
-        .eq("is_published", true)
-        .order("display_order", { ascending: true })
+      try {
+        const data = await cachedFetch(
+          "services",
+          async () => {
+            const { data, error } = await supabase
+              .from("services")
+              .select("id, title, slug, description, image_url")
+              .eq("is_published", true)
+              .order("display_order", { ascending: true })
 
-      if (!active) return
+            if (error) throw error
 
-      if (error) {
+            return data ?? []
+          },
+          CACHE_TIME,
+        )
+
+        if (!active) return
+
+        setServices(data as Service[])
+      } catch (error) {
+        if (!active) return
+
         console.error("Error loading services:", error)
         setError(true)
         setServices([])
-      } else {
-        setServices(data ?? [])
+      } finally {
+        if (active) setLoading(false)
       }
-
-      setLoading(false)
     }
 
     loadServices()

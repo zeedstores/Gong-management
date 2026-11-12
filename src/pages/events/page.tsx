@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 import {
   ButtonLink,
   Eyebrow,
@@ -22,6 +23,8 @@ type Event = {
   registration_url: string | null
   is_free: boolean
 }
+
+const CACHE_TIME = 60 * 60 * 1000
 
 function EventSkeleton() {
   return (
@@ -56,28 +59,41 @@ export default function EventsPage() {
     let active = true
 
     async function loadEvents() {
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          "id, title, description, event_type, status, start_date, venue, city, cover_image, registration_url, is_free"
+      try {
+        const data = await cachedFetch(
+          "events",
+          async () => {
+            const { data, error } = await supabase
+              .from("events")
+              .select(
+                "id, title, description, event_type, status, start_date, venue, city, cover_image, registration_url, is_free"
+              )
+              .eq("status", "published")
+              .eq("event_type", "flagship")
+              .order("start_date", {
+                ascending: true,
+                nullsFirst: false,
+              })
+
+            if (error) throw error
+
+            return data ?? []
+          },
+          CACHE_TIME,
         )
-        .eq("status", "published")
-        .eq("event_type", "flagship")
-        .order("start_date", {
-          ascending: true,
-          nullsFirst: false,
-        })
 
-      if (!active) return
+        if (!active) return
 
-      if (error) {
-        console.error("Failed to load events:", error.message)
+        setEvents(data as Event[])
+        setError(false)
+      } catch (error) {
+        if (!active) return
+
+        console.error("Failed to load events:", error)
         setError(true)
-      } else {
-        setEvents(data ?? [])
+      } finally {
+        if (active) setLoading(false)
       }
-
-      setLoading(false)
     }
 
     loadEvents()

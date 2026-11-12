@@ -1,8 +1,9 @@
 
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router-dom"
 import { Search, ShoppingBag, ArrowRight } from "lucide-react"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 import { Button, Eyebrow, Heading, PageHero } from "../../components/ui"
 
 type Product = {
@@ -17,6 +18,8 @@ type Product = {
     name: string
   } | null
 }
+
+const CACHE_TIME = 60 * 60 * 1000
 
 export default function ShopPage() {
   const navigate = useNavigate()
@@ -34,32 +37,49 @@ export default function ShopPage() {
       setLoading(true)
       setError(false)
 
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          id,
-          name,
-          description,
-          price,
-          availability,
-          image_url,
-          category_id,
-          category:product_categories(name)
-        `)
-        .neq("availability", "Draft")
-        .order("created_at", { ascending: false })
+      try {
+        const cachedProducts = await cachedFetch<Product[]>(
+          "products",
+          async () => {
+            const { data, error } = await supabase
+              .from("products")
+              .select(`
+                id,
+                name,
+                description,
+                price,
+                availability,
+                image_url,
+                category_id,
+                category:product_categories(name)
+              `)
+              .neq("availability", "Draft")
+              .order("created_at", { ascending: false })
 
-      if (!active) return
+            if (error) {
+              throw error
+            }
 
-      if (error) {
+            return (data ?? []) as Product[]
+          },
+          CACHE_TIME
+        )
+
+        if (!active) return
+
+        setProducts(cachedProducts)
+      } catch (error) {
         console.error("Error loading products:", error)
+
+        if (!active) return
+
         setError(true)
         setProducts([])
-      } else {
-        setProducts((data ?? []) as Product[])
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
       }
-
-      setLoading(false)
     }
 
     loadProducts()
@@ -112,7 +132,6 @@ export default function ShopPage() {
 
       <section className="section light-section py-16 sm:py-20 lg:py-28">
         <div className="shell">
-          {/* SHOP INTRO */}
           <div className="mb-8 max-w-2xl sm:mb-10">
             <Eyebrow dark>The Gong store</Eyebrow>
             <Heading>
@@ -122,7 +141,6 @@ export default function ShopPage() {
             </Heading>
           </div>
 
-          {/* SEARCH AND FILTERS */}
           <div className="mb-8 space-y-5">
             <label className="flex w-full max-w-xl items-center gap-3 border border-black/15 bg-white px-4 py-3">
               <Search size={18} className="shrink-0 text-black/45" />
@@ -156,7 +174,6 @@ export default function ShopPage() {
             )}
           </div>
 
-          {/* LOADING */}
           {loading && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
@@ -175,7 +192,6 @@ export default function ShopPage() {
             </div>
           )}
 
-          {/* ERROR */}
           {!loading && error && (
             <div className="border border-black/10 bg-white p-6 sm:p-8">
               <h2 className="text-lg font-bold">Store unavailable</h2>
@@ -186,7 +202,6 @@ export default function ShopPage() {
             </div>
           )}
 
-          {/* EMPTY STORE */}
           {!loading && !error && products.length === 0 && (
             <div className="border border-black/10 bg-white p-8 text-center sm:p-12">
               <ShoppingBag
@@ -202,7 +217,6 @@ export default function ShopPage() {
             </div>
           )}
 
-          {/* PRODUCTS */}
           {!loading && !error && products.length > 0 && (
             <>
               <div className="mb-5 flex items-center justify-between gap-3">

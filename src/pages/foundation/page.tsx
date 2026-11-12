@@ -120,7 +120,7 @@ export default function FoundationPage() {
         eyebrow="Gong Foundation"
         title="PURPOSE THAT REACHES BEYOND THE STAGE."
         copy="Building hope, supporting communities, and turning purpose into meaningful action."
-        image="/assets/foundation-hero.jpg"
+        image="/assets/foundation-hero.jpeg"
       />
 
       {/* Introduction */}

@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa6"
 import { Link } from "react-router"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 import { ButtonLink, Eyebrow, Heading, Status } from "../../components/ui"
 import PaymentModal from "../../components/PaymentModal"
 
@@ -121,6 +122,8 @@ type HomeData = {
   blogPosts: BlogPost[]
 }
 
+const CACHE_TIME = 60 * 60 * 1000
+
 const emptyHomeData: HomeData = {
   services: [],
   events: [],
@@ -163,119 +166,220 @@ export default function HomePage() {
 
     async function loadHomepage() {
       const [
-        servicesResult,
-        eventsResult,
-        productsResult,
-        equipmentResult,
-        propertiesResult,
-        portfolioResult,
-        campaignsResult,
-        teamResult,
-        blogResult,
-        socialResult,
+        services,
+        events,
+        products,
+        equipment,
+        properties,
+        portfolio,
+        campaigns,
+        team,
+        blogPosts,
+        socialLinksData,
       ] = await Promise.all([
-        supabase
-          .from("services")
-          .select("id, title, description, image_url, slug")
-          .eq("is_published", true)
-          .order("display_order")
-          .limit(8),
+        cachedFetch<Service[]>(
+          "home-services",
+          async () => {
+            const { data, error } = await supabase
+              .from("services")
+              .select("id, title, description, image_url, slug")
+              .eq("is_published", true)
+              .order("display_order")
+              .limit(8)
 
-        supabase
-          .from("events")
-          .select("id, title, slug, description, status, cover_image, is_free")
-          .eq("status", "published")
-          .order("start_date", { ascending: true, nullsFirst: false })
-          .limit(8),
+            if (error) throw error
+            return (data ?? []) as Service[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage services query failed:", error)
+          return []
+        }),
 
-        supabase
-          .from("products")
-          .select("id, name, price, availability, image_url")
-          .neq("availability", "Draft")
-          .limit(8),
+        cachedFetch<Event[]>(
+          "home-events",
+          async () => {
+            const { data, error } = await supabase
+              .from("events")
+              .select("id, title, slug, description, status, cover_image, is_free")
+              .eq("status", "published")
+              .order("start_date", { ascending: true, nullsFirst: false })
+              .limit(8)
 
-        supabase
-          .from("equipment")
-          .select("id, name, category, description, image_url")
-          .eq("is_published", true)
-          .limit(12),
+            if (error) throw error
+            return (data ?? []) as Event[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage events query failed:", error)
+          return []
+        }),
 
-        supabase
-          .from("properties")
-          .select("id, title, type, location, description, price, image_url")
-          .eq("is_published", true)
-          .limit(8),
+        cachedFetch<Product[]>(
+          "home-products",
+          async () => {
+            const { data, error } = await supabase
+              .from("products")
+              .select("id, name, price, availability, image_url")
+              .neq("availability", "Draft")
+              .limit(8)
 
-        supabase
-          .from("portfolio")
-          .select("id, title, category, image_url")
-          .eq("is_published", true)
-          .order("display_order")
-          .limit(4),
+            if (error) throw error
+            return (data ?? []) as Product[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage products query failed:", error)
+          return []
+        }),
 
-        supabase
-          .from("foundation_campaigns")
-          .select("id, title, slug, description, cover_image, goal_amount, currency")
-          .eq("status", "active")
-          .limit(5),
+        cachedFetch<Equipment[]>(
+          "home-equipment",
+          async () => {
+            const { data, error } = await supabase
+              .from("equipment")
+              .select("id, name, category, description, image_url")
+              .eq("is_published", true)
+              .limit(12)
 
-        supabase
-          .from("team_members")
-          .select("id, name, position, image_url")
-          .eq("is_active", true)
-          .order("display_order")
-          .limit(10),
+            if (error) throw error
+            return (data ?? []) as Equipment[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage equipment query failed:", error)
+          return []
+        }),
 
-        supabase
-          .from("blog_posts")
-          .select("id, title, slug, excerpt, cover_image, author, published_at, category")
-          .eq("status", "published")
-          .order("published_at", { ascending: false, nullsFirst: false })
-          .limit(8),
+        cachedFetch<Property[]>(
+          "home-properties",
+          async () => {
+            const { data, error } = await supabase
+              .from("properties")
+              .select("id, title, type, location, description, price, image_url")
+              .eq("is_published", true)
+              .limit(8)
 
-        supabase
-          .from("site_settings")
-          .select(
-            "instagram_url, facebook_url, youtube_url, tiktok_url, linkedin_url, x_url"
-          )
-          .eq("id", true)
-          .single(),
+            if (error) throw error
+            return (data ?? []) as Property[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage properties query failed:", error)
+          return []
+        }),
+
+        cachedFetch<PortfolioItem[]>(
+          "home-portfolio",
+          async () => {
+            const { data, error } = await supabase
+              .from("portfolio")
+              .select("id, title, category, image_url")
+              .eq("is_published", true)
+              .order("display_order")
+              .limit(4)
+
+            if (error) throw error
+            return (data ?? []) as PortfolioItem[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage portfolio query failed:", error)
+          return []
+        }),
+
+        cachedFetch<FoundationCampaign[]>(
+          "home-campaigns",
+          async () => {
+            const { data, error } = await supabase
+              .from("foundation_campaigns")
+              .select("id, title, slug, description, cover_image, goal_amount, currency")
+              .eq("status", "active")
+              .limit(5)
+
+            if (error) throw error
+            return (data ?? []) as FoundationCampaign[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage foundation campaigns query failed:", error)
+          return []
+        }),
+
+        cachedFetch<TeamMember[]>(
+          "home-team",
+          async () => {
+            const { data, error } = await supabase
+              .from("team_members")
+              .select("id, name, position, image_url")
+              .eq("is_active", true)
+              .order("display_order")
+              .limit(10)
+
+            if (error) throw error
+            return (data ?? []) as TeamMember[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage team members query failed:", error)
+          return []
+        }),
+
+        cachedFetch<BlogPost[]>(
+          "home-blog-posts",
+          async () => {
+            const { data, error } = await supabase
+              .from("blog_posts")
+              .select("id, title, slug, excerpt, cover_image, author, published_at, category")
+              .eq("status", "published")
+              .order("published_at", { ascending: false, nullsFirst: false })
+              .limit(8)
+
+            if (error) throw error
+            return (data ?? []) as BlogPost[]
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage blog posts query failed:", error)
+          return []
+        }),
+
+        cachedFetch<SocialLinks>(
+          "site-settings",
+          async () => {
+            const { data, error } = await supabase
+              .from("site_settings")
+              .select(
+                "instagram_url, facebook_url, youtube_url, tiktok_url, linkedin_url, x_url"
+              )
+              .eq("id", true)
+              .single()
+
+            if (error) throw error
+            return (data ?? emptySocialLinks) as SocialLinks
+          },
+          CACHE_TIME
+        ).catch((error) => {
+          console.error("Homepage social settings query failed:", error)
+          return emptySocialLinks
+        }),
       ])
-
-      const results = [
-        ["services", servicesResult.error],
-        ["events", eventsResult.error],
-        ["products", productsResult.error],
-        ["equipment", equipmentResult.error],
-        ["properties", propertiesResult.error],
-        ["portfolio", portfolioResult.error],
-        ["foundation campaigns", campaignsResult.error],
-        ["team members", teamResult.error],
-        ["blog posts", blogResult.error],
-        ["social settings", socialResult.error],
-      ] as const
-
-      results.forEach(([table, error]) => {
-        if (error) {
-          console.error(`Homepage ${table} query failed:`, error.message)
-        }
-      })
 
       if (!active) return
 
       setData({
-        services: servicesResult.data ?? [],
-        events: eventsResult.data ?? [],
-        products: productsResult.data ?? [],
-        equipment: equipmentResult.data ?? [],
-        properties: propertiesResult.data ?? [],
-        portfolio: portfolioResult.data ?? [],
-        campaigns: campaignsResult.data ?? [],
-        team: teamResult.data ?? [],
-        blogPosts: blogResult.data ?? [],
+        services,
+        events,
+        products,
+        equipment,
+        properties,
+        portfolio,
+        campaigns,
+        team,
+        blogPosts,
       })
 
-      setSocialLinks(socialResult.data ?? emptySocialLinks)
+      setSocialLinks(socialLinksData)
     }
 
     loadHomepage()

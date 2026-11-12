@@ -10,6 +10,7 @@ import {
   TextArea,
 } from "../../components/ui"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 
 type Equipment = {
   id: string
@@ -19,6 +20,8 @@ type Equipment = {
   image_url: string | null
   availability: string | null
 }
+
+const CACHE_TIME = 60 * 60 * 1000
 
 export default function EquipmentPage() {
   const [equipment, setEquipment] = useState<Equipment[]>([])
@@ -30,33 +33,51 @@ export default function EquipmentPage() {
 
   useEffect(() => {
     const loadPageData = async () => {
-      const [equipmentResult, settingsResult] = await Promise.all([
-        supabase
-          .from("equipment")
-          .select("id, name, category, description, image_url, availability")
-          .eq("is_published", true)
-          .order("created_at", { ascending: false }),
+      try {
+        const [equipmentData, settingsData] = await Promise.all([
+          cachedFetch<Equipment[]>(
+            "equipment",
+            async () => {
+              const { data, error } = await supabase
+                .from("equipment")
+                .select(
+                  "id, name, category, description, image_url, availability"
+                )
+                .eq("is_published", true)
+                .order("created_at", { ascending: false })
 
-        supabase
-          .from("site_settings")
-          .select("whatsapp_number")
-          .limit(1)
-          .maybeSingle(),
-      ])
+              if (error) throw error
 
-      if (equipmentResult.error) {
-        console.error("Equipment loading error:", equipmentResult.error)
-      } else {
-        setEquipment(equipmentResult.data ?? [])
+              return data ?? []
+            },
+            CACHE_TIME
+          ),
+
+          cachedFetch<{ whatsapp_number: string | null } | null>(
+            "equipment-page-settings",
+            async () => {
+              const { data, error } = await supabase
+                .from("site_settings")
+                .select("whatsapp_number")
+                .limit(1)
+                .maybeSingle()
+
+              if (error) throw error
+
+              return data
+            },
+            CACHE_TIME
+          ),
+        ])
+
+        setEquipment(equipmentData)
+        setWhatsappNumber(settingsData?.whatsapp_number ?? "")
+      } catch (err) {
+        console.error("Equipment page loading error:", err)
+        setError("Unable to load equipment. Please refresh the page.")
+      } finally {
+        setLoading(false)
       }
-
-      if (settingsResult.error) {
-        console.error("WhatsApp settings error:", settingsResult.error)
-      } else {
-        setWhatsappNumber(settingsResult.data?.whatsapp_number ?? "")
-      }
-
-      setLoading(false)
     }
 
     loadPageData()
@@ -88,8 +109,6 @@ export default function EquipmentPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
-    console.log("ENQUIRY FORM SUBMITTED")
 
     setError("")
     setSubmitting(true)
@@ -151,20 +170,15 @@ export default function EquipmentPage() {
         message,
       }
 
-      console.log("SENDING ENQUIRY TO SUPABASE:", enquiryData)
-
-      const { data, error: submitError } = await supabase
+      const { error: submitError } = await supabase
         .from("equipment_quote_requests")
         .insert(enquiryData)
-        .select()
 
       if (submitError) {
         console.error("SUPABASE ENQUIRY ERROR:", submitError)
         setError(submitError.message || "We couldn't submit your enquiry.")
         return
       }
-
-      console.log("ENQUIRY SAVED SUCCESSFULLY:", data)
 
       form.reset()
       setSent(true)
@@ -208,7 +222,7 @@ export default function EquipmentPage() {
             </div>
           ) : equipment.length === 0 ? (
             <p className="py-12 text-center text-white/60">
-              Equipment will be displayed here soon.
+              {error || "Equipment will be displayed here soon."}
             </p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

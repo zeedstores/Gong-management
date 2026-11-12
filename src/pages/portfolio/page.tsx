@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import { cachedFetch } from "../../lib/cache"
 import { ButtonLink, Eyebrow, Heading, PageHero } from "../../components/ui"
 
 type PortfolioItem = {
@@ -21,6 +22,8 @@ type PortfolioGroup = {
   }[]
 }
 
+const CACHE_TIME = 60 * 60 * 1000
+
 export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,25 +37,37 @@ export default function PortfolioPage() {
       setLoading(true)
       setError(false)
 
-      const { data, error } = await supabase
-        .from("portfolio")
-        .select(
-          "id, title, category, description, image_url, event_name, edition_year"
+      try {
+        const data = await cachedFetch(
+          "portfolio",
+          async () => {
+            const { data, error } = await supabase
+              .from("portfolio")
+              .select(
+                "id, title, category, description, image_url, event_name, edition_year"
+              )
+              .eq("is_published", true)
+              .order("display_order", { ascending: true })
+
+            if (error) throw error
+
+            return data ?? []
+          },
+          CACHE_TIME,
         )
-        .eq("is_published", true)
-        .order("display_order", { ascending: true })
 
-      if (!active) return
+        if (!active) return
 
-      if (error) {
+        setPortfolio(data as PortfolioItem[])
+      } catch (error) {
+        if (!active) return
+
         console.error("Error loading portfolio:", error)
         setError(true)
         setPortfolio([])
-      } else {
-        setPortfolio(data ?? [])
+      } finally {
+        if (active) setLoading(false)
       }
-
-      setLoading(false)
     }
 
     loadPortfolio()

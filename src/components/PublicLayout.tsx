@@ -12,11 +12,22 @@ import {
   FaWhatsapp,
 } from "react-icons/fa6"
 import { supabase } from "../lib/supabase"
+import { cachedFetch } from "../lib/cache"
 import { navItems } from "../data/mockData"
 import { useCart } from "./CartContext"
 import { ButtonLink } from "./ui"
 
 type SocialLinks = {
+  instagram_url: string | null
+  facebook_url: string | null
+  youtube_url: string | null
+  tiktok_url: string | null
+  linkedin_url: string | null
+  x_url: string | null
+}
+
+type SiteSettings = {
+  whatsapp_number: string | null
   instagram_url: string | null
   facebook_url: string | null
   youtube_url: string | null
@@ -33,6 +44,8 @@ const emptySocialLinks: SocialLinks = {
   linkedin_url: null,
   x_url: null,
 }
+
+const SITE_SETTINGS_CACHE_TIME = 60 * 60 * 1000
 
 export default function PublicLayout() {
   const [open, setOpen] = useState(false)
@@ -52,31 +65,40 @@ export default function PublicLayout() {
     let active = true
 
     async function fetchSiteSettings() {
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select(
-          "whatsapp_number, instagram_url, facebook_url, youtube_url, tiktok_url, linkedin_url, x_url"
+      try {
+        const data = await cachedFetch<SiteSettings | null>(
+          "site-settings",
+          async () => {
+            const { data, error } = await supabase
+              .from("site_settings")
+              .select(
+                "whatsapp_number, instagram_url, facebook_url, youtube_url, tiktok_url, linkedin_url, x_url"
+              )
+              .eq("id", true)
+              .maybeSingle()
+
+            if (error) throw error
+
+            return data
+          },
+          SITE_SETTINGS_CACHE_TIME
         )
-        .eq("id", true)
-        .single()
 
-      if (!active) return
+        if (!active || !data) return
 
-      if (error) {
-        console.error("Site settings error:", error.message)
-        return
+        setWhatsapp(data.whatsapp_number ?? "")
+
+        setSocialLinks({
+          instagram_url: data.instagram_url ?? null,
+          facebook_url: data.facebook_url ?? null,
+          youtube_url: data.youtube_url ?? null,
+          tiktok_url: data.tiktok_url ?? null,
+          linkedin_url: data.linkedin_url ?? null,
+          x_url: data.x_url ?? null,
+        })
+      } catch (error) {
+        console.error("Site settings error:", error)
       }
-
-      setWhatsapp(data?.whatsapp_number ?? "")
-
-      setSocialLinks({
-        instagram_url: data?.instagram_url ?? null,
-        facebook_url: data?.facebook_url ?? null,
-        youtube_url: data?.youtube_url ?? null,
-        tiktok_url: data?.tiktok_url ?? null,
-        linkedin_url: data?.linkedin_url ?? null,
-        x_url: data?.x_url ?? null,
-      })
     }
 
     fetchSiteSettings()

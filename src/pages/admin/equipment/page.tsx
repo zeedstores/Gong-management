@@ -12,6 +12,7 @@ import {
   Image,
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
+import { invalidateCache } from "../../../lib/cache"
 
 type Equipment = {
   id: string
@@ -224,7 +225,6 @@ export default function AdminEquipmentPage() {
     setSuccess("")
   }
 
-  // All equipment form fields are optional.
   async function saveEquipment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -277,6 +277,8 @@ export default function AdminEquipmentPage() {
         throw result.error
       }
 
+      invalidateCache("equipment")
+
       if (editing && uploadedImage && editing.image_path) {
         await removeEquipmentImage(editing.image_path)
       }
@@ -322,6 +324,8 @@ export default function AdminEquipmentPage() {
       return
     }
 
+    invalidateCache("equipment")
+
     setEquipment((current) =>
       current.map((entry) =>
         entry.id === item.id
@@ -352,6 +356,8 @@ export default function AdminEquipmentPage() {
       return
     }
 
+    invalidateCache("equipment")
+
     setEquipment((current) =>
       current.map((entry) =>
         entry.id === item.id ? { ...entry, availability } : entry
@@ -378,6 +384,8 @@ export default function AdminEquipmentPage() {
       setError(error.message)
       return
     }
+
+    invalidateCache("equipment")
 
     if (item.image_path) {
       const removed = await removeEquipmentImage(item.image_path)
